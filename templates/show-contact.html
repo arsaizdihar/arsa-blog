@@ -1,0 +1,34 @@
+{% include "header.html" %}
+    <!-- Page Header -->
+  <header class="masthead" style="background-image: url('{{ url_for('static', filename='img/contact-bg.jpg')}}')">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+          <div class="page-heading">
+            <h1>Contacts List</h1>
+            <span class="subheading">Here's all the contacts.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+    <article>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">
+            {% for contact in contacts %}
+            <div class="post-preview">
+                <h2 class="post-title">{{ contact.name }}</h2>
+                <h3 class="post-subtitle">{{ contact.email }} {{ contact.phone_number }}</h3>
+                <p class="post-meta">{{ contact.message }} <a href="{{url_for('show_contacts', id=contact.id) }}">✘</a></p>
+            </div>
+            {% endfor %}
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <hr>
+{% include "footer.html" %}

@@ -6,7 +6,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
-from flask_mail import Mail, Message
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
@@ -24,17 +23,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:/
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# MY_EMAIL = os.environ.get("EMAIL")
-MY_EMAIL = "pythonarsa@gmail.com"
-# MY_PASSWORD = os.environ.get("PASSWORD")
-MY_PASSWORD = "2lwoVk7Y#b8B$"
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = MY_EMAIL
-app.config['MAIL_PASSWORD'] = MY_PASSWORD
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-mail = Mail(app=app)
+# # MY_EMAIL = os.environ.get("EMAIL")
+# # MY_PASSWORD = os.environ.get("PASSWORD")
+# app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+# app.config['MAIL_PORT'] = 587
+# app.config['MAIL_USERNAME'] = MY_EMAIL
+# app.config['MAIL_PASSWORD'] = MY_PASSWORD
+# app.config['MAIL_USE_TLS'] = True
+# app.config['MAIL_USE_SSL'] = False
+# mail = Mail(app=app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -81,6 +78,15 @@ class Comment(db.Model):
     parent_post = relationship("BlogPost", back_populates="comments")
 
     text = db.Column(db.Text, nullable=False)
+
+
+class Contact(db.Model):
+    __tablename__ = "contacts"
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100))
+    name = db.Column(db.String(100))
+    phone_number = db.Column(db.String(20))
+    message = db.Column(db.Text)
 
 
 db.create_all()
@@ -192,9 +198,9 @@ def contact():
         email = data["email"]
         phone_number = data['phone_number']
         message = data["message"]
-        msg = Message("New Message from Blog", sender=MY_EMAIL, recipients=["arsadihar@gmail.com"])
-        msg.body = f"Name: {name}\nEmail: {email}\nPhone: {phone_number}\nMessage: {message}"
-        mail.send(msg)
+        new_contact = Contact(name=name, email=email, phone_number=phone_number, message=message)
+        db.session.add(new_contact)
+        db.session.commit()
         return redirect(url_for("contact"))
     return render_template("contact.html", logged_in=current_user.is_authenticated)
 
@@ -269,6 +275,27 @@ def delete_comment(post_id):
     db.session.delete(comment)
     db.session.commit()
     return redirect(url_for("show_post", post_id=post_id))
+
+
+@app.route("/contact/show")
+@admin_only
+def show_contacts():
+    contact_id = request.args.get("id")
+    if contact_id:
+        contact_id = int(contact_id)
+        contact_to_delete = Contact.query.get(contact_id)
+        db.session.delete(contact_to_delete)
+        db.session.commit()
+        return redirect(url_for("show_contacts"))
+    all_contacts = Contact.query.all()
+    return render_template("show-contact.html", contacts=all_contacts, logged_in=True)
+
+
+@app.route("/users")
+@admin_only
+def show_users():
+    all_users = User.query.all()
+    return render_template("show-users.html", users=all_users, logged_in=True)
 
 
 if __name__ == "__main__":
