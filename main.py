@@ -12,7 +12,7 @@ from functools import wraps
 import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 ckeditor = CKEditor(app)
 Bootstrap(app)
 
@@ -216,6 +216,18 @@ def delete_post(post_id):
     db.session.delete(post_to_delete)
     db.session.commit()
     return redirect(url_for('get_all_posts'))
+
+
+@app.route("/edit-admin", methods=["GET", "POST"])
+@admin_only
+def edit_admin():
+    form = LoginForm()
+    if form.validate_on_submit():
+        current_user.email = form.email.data
+        current_user.password = generate_password_hash(form.password.data, method="pbkdf2:sha256", salt_length=8)
+        db.session.commit()
+        return redirect(url_for("get_all_posts"))
+    return render_template("edit-admin.html", form=form, logged_id=current_user.is_authenticated)
 
 
 if __name__ == "__main__":
