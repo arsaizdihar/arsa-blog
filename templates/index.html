@@ -19,7 +19,12 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
-        {% for post in all_posts %}
+        {% if all_posts|length - 5*(page_number-1) > 5 %}
+        {% set posts = all_posts[(page_number-1)*5:(page_number-1)*5 + 5] %}
+        {% else %}
+        {% set posts = all_posts[(page_number-1)*5:] %}
+        {% endif %}
+        {% for post in posts %}
         <div class="post-preview">
           <a href="{{ url_for('show_post', post_id=post.id) }}">
             <h2 class="post-title">
@@ -40,6 +45,14 @@
         <hr>
         {% endfor %}
 
+        <div class="clearfix">
+          {% if prev_page %}
+          <a class="btn btn-dark float-left" href="{{ url_for('get_all_posts', page_number=page_number-1) }}">Prev</a>
+          {% endif %}
+          {% if next_page %}
+          <a class="btn btn-dark float-left" href="{{ url_for('get_all_posts', page_number=page_number+1) }}">Next</a>
+          {% endif %}
+        </div>
 
         <!-- New Post -->
         {% if current_user.id == 1 %}

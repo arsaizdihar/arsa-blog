@@ -10,6 +10,7 @@ from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
 import os
+import math
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
@@ -89,8 +90,17 @@ def load_user(user_id):
 
 @app.route('/')
 def get_all_posts():
+    page_number = request.args.get("page_number")
+    if not page_number:
+        page_number = 1
+    else:
+        page_number = int(page_number)
     posts = BlogPost.query.all()
-    return render_template("index.html", all_posts=posts, logged_in=current_user.is_authenticated)
+    posts.reverse()
+    max_page = math.ceil(len(posts) / 5)
+    next_page = max_page > page_number
+    prev_page = page_number > 1
+    return render_template("index.html", all_posts=posts, page_number=page_number, prev_page=prev_page, next_page=next_page, logged_in=current_user.is_authenticated)
 
 
 @app.route('/register', methods=["POST", "GET"])
