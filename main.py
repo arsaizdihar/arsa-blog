@@ -6,17 +6,18 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+from flask_mail import Mail, Message
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
 import os
 import math
-import smtplib
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 ckeditor = CKEditor(app)
 Bootstrap(app)
+
 
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
@@ -24,7 +25,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 MY_EMAIL = os.environ.get("EMAIL")
-MY_PASSWORD = os.environ.get("PASSWORD")
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = MY_EMAIL
+app.config['MAIL_PASSWORD'] = os.environ.get("PASSWORD")
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+mail = Mail(app=app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -182,14 +189,9 @@ def contact():
         email = data["email"]
         phone_number = data['phone_number']
         message = data["message"]
-        with smtplib.SMTP("smtp.gmail.com", 587) as connection:
-            connection.starttls()
-            connection.login(MY_EMAIL, MY_PASSWORD)
-            connection.sendmail(MY_EMAIL, "arsadihar@gmail.com", f"Subject:New Message\n\n"
-                                                                 f"Name: {name}\n"
-                                                                 f"Email: {email}\n"
-                                                                 f"Phone: {phone_number}\n"
-                                                                 f"Message: {message}")
+        msg = Message("New Message from Blog", sender=MY_EMAIL, recipients=["arsadihar@gmail.com"])
+        msg.body = f"Name: {name}\nEmail: {email}\nPhone: {phone_number}\nMessage: {message}"
+        mail.send(msg)
         return redirect(url_for("contact"))
     return render_template("contact.html", logged_in=current_user.is_authenticated)
 
