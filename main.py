@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort
+from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import date
@@ -229,6 +229,14 @@ def edit_admin():
         return redirect(url_for("get_all_posts"))
     return render_template("edit-admin.html", form=form, logged_id=current_user.is_authenticated)
 
+
+@app.route("/delete-comment/<int:post_id>")
+def delete_comment(post_id):
+    comment_id = request.args.get("comment_id")
+    comment = Comment.query.get(comment_id)
+    db.session.delete(comment)
+    db.session.commit()
+    return redirect(url_for("show_post", post_id=post_id))
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
