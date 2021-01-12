@@ -24,11 +24,14 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:/
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-MY_EMAIL = os.environ.get("EMAIL")
+# MY_EMAIL = os.environ.get("EMAIL")
+MY_EMAIL = "pythonarsa@gmail.com"
+# MY_PASSWORD = os.environ.get("PASSWORD")
+MY_PASSWORD = "2lwoVk7Y#b8B$"
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USERNAME'] = MY_EMAIL
-app.config['MAIL_PASSWORD'] = os.environ.get("PASSWORD")
+app.config['MAIL_PASSWORD'] = MY_PASSWORD
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 mail = Mail(app=app)
