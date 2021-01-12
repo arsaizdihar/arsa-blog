@@ -11,6 +11,7 @@ from flask_gravatar import Gravatar
 from functools import wraps
 import os
 import math
+import smtplib
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
@@ -21,6 +22,9 @@ Bootstrap(app)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+MY_EMAIL = os.environ.get("EMAIL")
+MY_PASSWORD = os.environ.get("PASSWORD")
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -170,8 +174,23 @@ def about():
     return render_template("about.html", logged_in=current_user.is_authenticated)
 
 
-@app.route("/contact")
+@app.route("/contact", methods=["GET", "POST"])
 def contact():
+    if request.method == "POST":
+        data = request.form
+        name = data["username"]
+        email = data["email"]
+        phone_number = data['phone_number']
+        message = data["message"]
+        with smtplib.SMTP("smtp.gmail.com", 587) as connection:
+            connection.starttls()
+            connection.login(MY_EMAIL, MY_PASSWORD)
+            connection.sendmail(MY_EMAIL, "arsadihar@gmail.com", f"Subject:New Message\n\n"
+                                                                 f"Name: {name}\n"
+                                                                 f"Email: {email}\n"
+                                                                 f"Phone: {phone_number}\n"
+                                                                 f"Message: {message}")
+        return redirect(url_for("contact"))
     return render_template("contact.html", logged_in=current_user.is_authenticated)
 
 
@@ -245,6 +264,7 @@ def delete_comment(post_id):
     db.session.delete(comment)
     db.session.commit()
     return redirect(url_for("show_post", post_id=post_id))
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
