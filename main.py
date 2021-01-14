@@ -89,15 +89,15 @@ class Contact(db.Model):
     message = db.Column(db.Text)
 
 
-class VisitorIP(db.Model):
+class Visitor(db.Model):
     __tablename__ = "visitors"
     id = db.Column(db.Integer, primary_key=True)
     date_time = db.Column(db.String(100))
     ip = db.Column(db.String(100))
+    user_agent = db.Column(db.String(300))
 
 
 db.create_all()
-
 
 def admin_only(f):
     @wraps(f)
@@ -118,7 +118,7 @@ def load_user(user_id):
 @app.route('/')
 def get_all_posts():
     page_number = request.args.get("page_number")
-    visitor = VisitorIP(date_time=datetime.now(), ip=request.remote_addr)
+    visitor = Visitor(date_time=datetime.now(), ip=request.remote_addr, user_agent=request.user_agent.string)
     db.session.add(visitor)
     db.session.commit()
     if not page_number:
