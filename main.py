@@ -118,9 +118,15 @@ def load_user(user_id):
 @app.route('/')
 def get_all_posts():
     page_number = request.args.get("page_number")
-    visitor = Visitor(date_time=datetime.now(), ip=request.remote_addr, user_agent=request.user_agent.string)
-    db.session.add(visitor)
-    db.session.commit()
+    if current_user.is_authenticated:
+        if current_user.id != 1:
+            visitor = Visitor(date_time=datetime.now(), ip=request.remote_addr, user_agent=current_user.name)
+            db.session.add(visitor)
+            db.session.commit()
+    else:
+        visitor = Visitor(date_time=datetime.now(), ip=request.remote_addr, user_agent=request.user_agent.string)
+        db.session.add(visitor)
+        db.session.commit()
     if not page_number:
         page_number = 1
     else:
