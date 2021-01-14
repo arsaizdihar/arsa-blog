@@ -115,7 +115,7 @@ def get_all_posts():
         page_number = 1
     else:
         page_number = int(page_number)
-    posts = BlogPost.query.all()
+    posts = BlogPost.query.order_by("id").all()
     posts.reverse()
     max_page = math.ceil(len(posts) / 5)
     next_page = max_page > page_number
