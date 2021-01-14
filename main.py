@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
-from datetime import date
+from datetime import date, datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -89,6 +89,13 @@ class Contact(db.Model):
     message = db.Column(db.Text)
 
 
+class VisitorIP(db.Model):
+    __tablename__ = "visitors"
+    id = db.Column(db.Integer, primary_key=True)
+    date_time = db.Column(db.String(100))
+    ip = db.Column(db.String(100))
+
+
 db.create_all()
 
 
@@ -111,6 +118,9 @@ def load_user(user_id):
 @app.route('/')
 def get_all_posts():
     page_number = request.args.get("page_number")
+    visitor = VisitorIP(date_time=datetime.now(), ip=request.remote_addr)
+    db.session.add(visitor)
+    db.session.commit()
     if not page_number:
         page_number = 1
     else:
