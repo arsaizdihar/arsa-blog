@@ -307,9 +307,21 @@ def show_users():
     all_users = User.query.all()
     return render_template("show-users.html", users=all_users, logged_in=True)
 
+
 @app.route("/visitors")
 @admin_only
 def show_visitors():
+    visitor_id = request.args.get("id")
+    is_delete_all = request.args.get("delete_all")
+    if is_delete_all:
+        Visitor.query.delete()
+        db.session.commit()
+    elif visitor_id:
+        visitor_id = int(visitor_id)
+        visitor_to_delete = Visitor.query.get(visitor_id)
+        db.session.delete(visitor_to_delete)
+        db.session.commit()
+        return redirect(url_for("show_visitors"))
     all_visitors = Visitor.query.all()
     return render_template("show-visitors.html", visitors=all_visitors, logged_in=True)
 
