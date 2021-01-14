@@ -307,6 +307,12 @@ def show_users():
     all_users = User.query.all()
     return render_template("show-users.html", users=all_users, logged_in=True)
 
+@app.route("/visitors")
+@admin_only
+def show_visitors():
+    all_visitors = Visitor.query.all()
+    return render_template("show-visitors.html", visitors=all_visitors, logged_in=True)
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=5000)
