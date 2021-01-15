@@ -99,6 +99,7 @@ class Visitor(db.Model):
 
 db.create_all()
 
+
 def admin_only(f):
     @wraps(f)
     def wrapped_function(*args, **kwargs):
@@ -108,6 +109,14 @@ def admin_only(f):
             return abort(404)
         return abort(404)
     return wrapped_function
+
+
+def check_admin():
+    if current_user.is_authenticated:
+        if current_user.id == 1:
+            return True
+        return False
+    return False
 
 
 @login_manager.user_loader
@@ -132,6 +141,7 @@ def get_all_posts():
     else:
         page_number = int(page_number)
     posts = BlogPost.query.order_by("id").all()
+    del posts[0]
     posts.reverse()
     max_page = math.ceil(len(posts) / 5)
     next_page = max_page > page_number
@@ -203,7 +213,8 @@ def show_post(post_id):
 
 @app.route("/about")
 def about():
-    return render_template("about.html", logged_in=current_user.is_authenticated)
+    post = BlogPost.query.get(1)
+    return render_template("about.html", logged_in=current_user.is_authenticated, post=post)
 
 
 @app.route("/contact", methods=["GET", "POST"])
@@ -256,6 +267,10 @@ def edit_post(post_id):
         post.img_url = edit_form.img_url.data
         post.body = edit_form.body.data
         db.session.commit()
+
+        # POST FOR ABOUT
+        if post.id == 1:
+            return redirect(url_for("about"))
         return redirect(url_for("show_post", post_id=post.id))
 
     return render_template("make-post.html", form=edit_form, logged_in=current_user.is_authenticated)

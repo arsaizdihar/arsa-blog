@@ -1,14 +1,14 @@
 {% include "header.html" %}
 
   <!-- Page Header -->
-  <header class="masthead" style="background-image: url({{ url_for('static', filename='img/about-bg.jpg')}})">
+  <header class="masthead" style="background-image: url({{ post.img_url }})">
     <div class="overlay"></div>
     <div class="container">
       <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
           <div class="page-heading">
-            <h1>About Me</h1>
-            <span class="subheading">This is what I do.</span>
+            <h1>{{ post.title }}</h1>
+            <span class="subheading">{{ post.subtitle }}</span>
           </div>
         </div>
       </div>
@@ -19,9 +19,13 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
-        <p>I just made this blog to learn web developing using flask framework.</p>
-        <p></p>
-        <p></p>
+        {{ post.body|safe }}
+        {% if current_user.id == 1 %}
+        <hr>
+        <div class="clearfix">
+          <a class="btn btn-primary float-right" href="{{url_for('edit_post', post_id=post.id)}}">Edit</a>
+        </div>
+        {% endif %}
       </div>
     </div>
   </div>
