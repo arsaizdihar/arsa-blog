@@ -1,16 +1,20 @@
 from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
-from datetime import date, datetime
+from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
-from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
+from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
+from dateutil import tz
 import os
 import math
+
+
+JKT = tz.gettz("SE Asia Standard Time")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
@@ -127,11 +131,11 @@ def get_all_posts():
     page_number = request.args.get("page_number")
     if current_user.is_authenticated:
         if current_user.id != 1:
-            visitor = Visitor(date_time=datetime.now(), ip=request.remote_addr, user_agent=current_user.name)
+            visitor = Visitor(date_time=datetime.now(JKT), ip=request.remote_addr, user_agent=current_user.name)
             db.session.add(visitor)
             db.session.commit()
     else:
-        visitor = Visitor(date_time=datetime.now(), ip=request.remote_addr, user_agent=request.user_agent.string)
+        visitor = Visitor(date_time=datetime.now(JKT), ip=request.remote_addr, user_agent=request.user_agent.string)
         db.session.add(visitor)
         db.session.commit()
     if not page_number:
@@ -241,7 +245,7 @@ def add_new_post():
             body=form.body.data,
             img_url=form.img_url.data,
             author=current_user,
-            date=date.today().strftime("%B %d, %Y")
+            date=datetime.now(JKT).strftime("%B %d, %Y")
         )
         db.session.add(new_post)
         db.session.commit()

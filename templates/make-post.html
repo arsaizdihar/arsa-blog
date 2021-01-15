@@ -3,6 +3,7 @@
 
 {% block content %}
 {% include "header.html" %}
+{% block head %}<link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}">{% endblock %}
   <!-- Page Header -->
   <header class="masthead" style="background-image: url('{{ url_for('static', filename='img/edit-bg.jpg')}}')">
     <div class="overlay"></div>
