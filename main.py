@@ -9,7 +9,7 @@ from flask_login import UserMixin, login_user, LoginManager, current_user, logou
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
-from dateutil import tz
+from pytz import timezone
 import os
 import math
 
@@ -104,7 +104,7 @@ db.create_all()
 
 
 def get_jkt_timezone():
-    return tz.gettz("SE Asia Standard Time")
+    return timezone("Asia/Jakarta")
 
 
 def check_admin():
