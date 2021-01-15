@@ -342,6 +342,7 @@ def show_visitors():
         db.session.commit()
         return redirect(url_for("show_visitors"))
     all_visitors = Visitor.query.all()
+    all_visitors.reverse()
     return render_template("show-visitors.html", visitors=all_visitors, logged_in=True)
 
 
