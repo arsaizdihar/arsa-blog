@@ -14,7 +14,6 @@ import os
 import math
 
 
-JKT = tz.gettz("SE Asia Standard Time")
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
@@ -104,6 +103,10 @@ class Visitor(db.Model):
 db.create_all()
 
 
+def get_jkt_timezone():
+    return tz.gettz("SE Asia Standard Time")
+
+
 def check_admin():
     if current_user.is_authenticated:
         if current_user.id == 1:
@@ -131,11 +134,11 @@ def get_all_posts():
     page_number = request.args.get("page_number")
     if current_user.is_authenticated:
         if current_user.id != 1:
-            visitor = Visitor(date_time=datetime.now(JKT), ip=request.remote_addr, user_agent=current_user.name)
+            visitor = Visitor(date_time=datetime.now(get_jkt_timezone()), ip=request.remote_addr, user_agent=current_user.name)
             db.session.add(visitor)
             db.session.commit()
     else:
-        visitor = Visitor(date_time=datetime.now(JKT), ip=request.remote_addr, user_agent=request.user_agent.string)
+        visitor = Visitor(date_time=datetime.now(get_jkt_timezone()), ip=request.remote_addr, user_agent=request.user_agent.string)
         db.session.add(visitor)
         db.session.commit()
     if not page_number:
@@ -245,7 +248,7 @@ def add_new_post():
             body=form.body.data,
             img_url=form.img_url.data,
             author=current_user,
-            date=datetime.now(JKT).strftime("%B %d, %Y")
+            date=datetime.now(get_jkt_timezone()).strftime("%B %d, %Y")
         )
         db.session.add(new_post)
         db.session.commit()
