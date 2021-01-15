@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, flash, abort, request
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -9,7 +9,6 @@ from flask_login import UserMixin, login_user, LoginManager, current_user, logou
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
-from pytz import timezone
 import os
 import math
 
@@ -103,8 +102,8 @@ class Visitor(db.Model):
 db.create_all()
 
 
-def get_jkt_timezone():
-    return timezone("Asia/Jakarta")
+def get_jkt_timezone(date_time: datetime):
+    return date_time + timedelta(hours=7)
 
 
 def check_admin():
@@ -134,11 +133,11 @@ def get_all_posts():
     page_number = request.args.get("page_number")
     if current_user.is_authenticated:
         if current_user.id != 1:
-            visitor = Visitor(date_time=datetime.now(get_jkt_timezone()), ip=request.remote_addr, user_agent=current_user.name)
+            visitor = Visitor(date_time=get_jkt_timezone(datetime.now()), ip=request.remote_addr, user_agent=current_user.name)
             db.session.add(visitor)
             db.session.commit()
     else:
-        visitor = Visitor(date_time=datetime.now(get_jkt_timezone()), ip=request.remote_addr, user_agent=request.user_agent.string)
+        visitor = Visitor(date_time=get_jkt_timezone(datetime.now()), ip=request.remote_addr, user_agent=request.user_agent.string)
         db.session.add(visitor)
         db.session.commit()
     if not page_number:
@@ -248,7 +247,7 @@ def add_new_post():
             body=form.body.data,
             img_url=form.img_url.data,
             author=current_user,
-            date=datetime.now(get_jkt_timezone()).strftime("%B %d, %Y")
+            date=get_jkt_timezone(datetime.now()).strftime("%B %d, %Y")
         )
         db.session.add(new_post)
         db.session.commit()
