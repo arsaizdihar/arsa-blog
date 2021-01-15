@@ -100,23 +100,21 @@ class Visitor(db.Model):
 db.create_all()
 
 
-def admin_only(f):
-    @wraps(f)
-    def wrapped_function(*args, **kwargs):
-        if current_user.is_authenticated:
-            if current_user.id == 1:
-                return f(*args, **kwargs)
-            return abort(404)
-        return abort(404)
-    return wrapped_function
-
-
 def check_admin():
     if current_user.is_authenticated:
         if current_user.id == 1:
             return True
         return False
     return False
+
+
+def admin_only(f):
+    @wraps(f)
+    def wrapped_function(*args, **kwargs):
+        if check_admin():
+            return f(*args, **kwargs)
+        return abort(404)
+    return wrapped_function
 
 
 @login_manager.user_loader
