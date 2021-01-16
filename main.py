@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort, request
+from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import datetime, timedelta
@@ -9,6 +9,7 @@ from flask_login import UserMixin, login_user, LoginManager, current_user, logou
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from flask_gravatar import Gravatar
 from functools import wraps
+from urllib.parse import urlparse
 import os
 import math
 
@@ -152,6 +153,39 @@ def get_all_posts():
     next_page = max_page > page_number
     prev_page = page_number > 1
     return render_template("index.html", all_posts=posts, page_number=page_number, prev_page=prev_page, next_page=next_page, logged_in=current_user.is_authenticated, img_url=img_url, subheading=subheading)
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    host_components = urlparse(request.host_url)
+    host_base = host_components.scheme + "://" + host_components.netloc
+
+    # Static routes with static content
+    # static_urls = list()
+    # for rule in app.url_map.iter_rules():
+    #     if not str(rule).startswith("/admin") and not str(rule).startswith("/user"):
+    #         if "GET" in rule.methods and len(rule.arguments) == 0:
+    #             url = {
+    #                 "loc": f"{host_base}{str(rule)}"
+    #             }
+    #             static_urls.append(url)
+
+    # Dynamic routes with dynamic content
+    dynamic_urls = list()
+    blog_posts = BlogPost.query.all()
+    for post in blog_posts:
+        url = {
+            "loc": f"{host_base}/post/{post.id}",
+            "lastmod": post.date
+        }
+        dynamic_urls.append(url)
+
+    xml_sitemap = render_template("sitemap.xml", dynamic_urls=dynamic_urls,
+                                  host_base=host_base)
+    response = make_response(xml_sitemap)
+    response.headers["Content-Type"] = "application/xml"
+
+    return response
 
 
 @app.route('/register', methods=["POST", "GET"])
