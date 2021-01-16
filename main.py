@@ -238,6 +238,11 @@ def show_post(post_id):
         return abort(404)
     form = CommentForm()
     requested_post = BlogPost.query.get(post_id)
+    if not check_admin():
+        if not requested_post.views:
+            requested_post.views = 0
+        requested_post.views += 1
+        db.session.commit()
     if form.validate_on_submit():
         if current_user.is_authenticated:
             comment = Comment(
