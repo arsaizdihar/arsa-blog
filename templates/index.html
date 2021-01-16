@@ -19,14 +19,19 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
-        <h1 class="text-center">PAGE {{ page_number }}</h1>
+        <h1 class="text-center" >PAGE {{ page_number }}</h1>
         {% if all_posts|length - 5*(page_number-1) > 5 %}
         {% set posts = all_posts[(page_number-1)*5:(page_number-1)*5 + 5] %}
         {% else %}
         {% set posts = all_posts[(page_number-1)*5:] %}
         {% endif %}
         {% for post in posts %}
-        <div class="post-preview">
+        {% if loop.index%2 %}
+        {% set dir = "left" %}
+        {% else %}
+        {% set dir = "right" %}
+        {% endif %}
+        <div class="post-preview" data-100-bottom="opacity:0;{{ dir }}:300px;" data--100-bottom="opacity:1;{{ dir }}:0px;">
           <a href="{{ url_for('show_post', post_id=post.id) }}">
             <h2 class="post-title">
               {{post.title}}
@@ -48,17 +53,23 @@
 
         <div class="clearfix">
           {% if prev_page %}
-          <a class="btn btn-dark float-left" href="{{ url_for('get_all_posts', page_number=page_number-1) }}">Prev</a>
+          <a class="btn btn-dark float-left" href="{{ url_for('get_all_posts', page_number=page_number-1) }} " data-100-bottom="opacity:0;left:300px;" data--100-bottom="opacity:1;left:0px;">
+            Prev
+          </a>
           {% endif %}
           {% if next_page %}
-          <a class="btn btn-dark float-left" href="{{ url_for('get_all_posts', page_number=page_number+1) }}">Next</a>
+          <a class="btn btn-dark float-left" href="{{ url_for('get_all_posts', page_number=page_number+1) }}" data-100-bottom="opacity:0;right:300px;" data--100-bottom="opacity:1;right:0px;">
+            Next
+          </a>
           {% endif %}
         </div>
 
         <!-- New Post -->
         {% if current_user.id == 1 %}
         <div class="clearfix">
-          <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}">Create New Post</a>
+          <a class="btn btn-primary float-right" href="{{url_for('add_new_post')}}" data-100-bottom="opacity:0;right:300px;" data--100-bottom="opacity:1;right:0px;">
+            Create New Post
+          </a>
         </div>
         {% endif %}
       </div>
