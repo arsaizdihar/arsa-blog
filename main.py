@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response
+from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response, session
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import datetime, timedelta
@@ -22,6 +22,8 @@ Bootstrap(app)
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 db = SQLAlchemy(app)
 
 # # MY_EMAIL = os.environ.get("EMAIL")
@@ -220,6 +222,7 @@ def login():
             return redirect(url_for("login"))
         if check_password_hash(user.password, form.password.data):
             login_user(user)
+            session.permanent = True
             return redirect(url_for("get_all_posts"))
         flash("Password incorrect, please try again.")
         return redirect(url_for("login"))
