@@ -66,6 +66,7 @@ class BlogPost(db.Model):
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
     img_url = db.Column(db.String(250), nullable=False)
+    views = db.Column(db.Integer)
 
 
 class Comment(db.Model):
@@ -284,7 +285,8 @@ def add_new_post():
             body=form.body.data,
             img_url=form.img_url.data,
             author=current_user,
-            date=get_jkt_timezone(datetime.now()).strftime("%B %d, %Y")
+            date=get_jkt_timezone(datetime.now()).strftime("%B %d, %Y"),
+            views=0
         )
         db.session.add(new_post)
         db.session.commit()
