@@ -174,11 +174,12 @@ def sitemap():
     dynamic_urls = list()
     blog_posts = BlogPost.query.all()
     for post in blog_posts:
-        url = {
-            "loc": f"{host_base}/post/{post.id}",
-            "lastmod": post.date
-        }
-        dynamic_urls.append(url)
+        if post.id != 1:
+            url = {
+                "loc": f"{host_base}/post/{post.id}",
+                "lastmod": post.date
+            }
+            dynamic_urls.append(url)
 
     xml_sitemap = render_template("sitemap.xml", dynamic_urls=dynamic_urls,
                                   host_base=host_base)
@@ -233,6 +234,8 @@ def logout():
 
 @app.route("/post/<int:post_id>", methods=["GET", "POST"])
 def show_post(post_id):
+    if post_id == 1:
+        return abort(404)
     form = CommentForm()
     requested_post = BlogPost.query.get(post_id)
     if form.validate_on_submit():
