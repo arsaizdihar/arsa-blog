@@ -13,7 +13,6 @@ from urllib.parse import urlparse
 import os
 import math
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 ckeditor = CKEditor(app)
@@ -177,7 +176,7 @@ def sitemap():
         if post.id != 1:
             url = {
                 "loc": f"{host_base}/post/{post.id}",
-                "lastmod": post.date
+                "lastmod": datetime.strptime(post.date, "%B %d, %Y").strftime("%Y-%m-%dT%H:%M:%SZ")
             }
             dynamic_urls.append(url)
 
