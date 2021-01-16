@@ -13,7 +13,6 @@ import os
 import math
 
 
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 ckeditor = CKEditor(app)
@@ -130,6 +129,8 @@ def load_user(user_id):
 
 @app.route('/')
 def get_all_posts():
+    img_url = os.environ.get("HOME_IMG_URL", "https://images.unsplash.com/photo-1519681393784-d120267933ba?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80")
+    subheading = os.environ.get("HOME_SUBHEADING", "test")
     page_number = request.args.get("page_number")
     if current_user.is_authenticated:
         if current_user.id != 1:
@@ -150,7 +151,7 @@ def get_all_posts():
     max_page = math.ceil(len(posts) / 5)
     next_page = max_page > page_number
     prev_page = page_number > 1
-    return render_template("index.html", all_posts=posts, page_number=page_number, prev_page=prev_page, next_page=next_page, logged_in=current_user.is_authenticated)
+    return render_template("index.html", all_posts=posts, page_number=page_number, prev_page=prev_page, next_page=next_page, logged_in=current_user.is_authenticated, img_url=img_url, subheading=subheading)
 
 
 @app.route('/register', methods=["POST", "GET"])
