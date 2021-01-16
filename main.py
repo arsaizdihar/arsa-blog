@@ -5,8 +5,8 @@ from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
-from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
-from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
+from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user, login_required
+from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm, ContactForm
 from flask_gravatar import Gravatar
 from functools import wraps
 from urllib.parse import urlparse
@@ -230,6 +230,7 @@ def login():
 
 
 @app.route('/logout')
+@login_required
 def logout():
     logout_user()
     return redirect(url_for('get_all_posts'))
@@ -269,17 +270,20 @@ def about():
 
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
-    if request.method == "POST":
-        data = request.form
-        name = data["username"]
-        email = data["email"]
-        phone_number = data['phone_number']
-        message = data["message"]
+    form = ContactForm()
+    if current_user.is_authenticated:
+        form.username.data = current_user.name
+        form.email.data = current_user.email
+    if form.validate_on_submit():
+        name = form.username.data
+        email = form.email.data
+        phone_number = form.phone_number.data
+        message = form.message.data
         new_contact = Contact(name=name, email=email, phone_number=phone_number, message=message)
         db.session.add(new_contact)
         db.session.commit()
         return redirect(url_for("contact"))
-    return render_template("contact.html", logged_in=current_user.is_authenticated)
+    return render_template("contact.html", logged_in=current_user.is_authenticated, form=form)
 
 
 @app.route("/new-post", methods=["GET", "POST"])
