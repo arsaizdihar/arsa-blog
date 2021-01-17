@@ -21,13 +21,13 @@
             {% for visitor in visitors %}
             <div class="post-preview">
                 <h2 class="post-title">{{ visitor.date_time }}</h2>
-                <p class="post-meta">{{ visitor.user_agent }} <a href="{{url_for('show_visitors', id=visitor.id) }}">✘</a></p>
+                <p class="post-meta">{{ visitor.user_agent }} <a href="{{url_for('admin_app.show_visitors', id=visitor.id) }}">✘</a></p>
             </div>
             {% endfor %}
         </div>
       </div>
           <div class="clearfix">
-          <a class="btn btn-primary float-right" href="{{url_for('show_visitors', delete_all=True)}}">Delete All</a>
+          <a class="btn btn-primary float-right" href="{{url_for('admin_app.show_visitors', delete_all=True)}}">Delete All</a>
         </div>
     </div>
   </article>
