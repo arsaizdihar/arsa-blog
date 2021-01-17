@@ -218,7 +218,7 @@ def register():
         db.session.commit()
         login_user(new_user)
         return redirect(url_for("get_all_posts"))
-    return render_template("register.html", form=form, logged_in=current_user.is_authenticated)
+    return render_template("register.html", form=form, logged_in=current_user.is_authenticated, title="Register Arsa Izdihar Islam's Blog")
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -235,7 +235,7 @@ def login():
             return redirect(url_for("get_all_posts"))
         flash("Password incorrect, please try again.")
         return redirect(url_for("login"))
-    return render_template("login.html", form=form, logged_in=current_user.is_authenticated)
+    return render_template("login.html", form=form, logged_in=current_user.is_authenticated, title="Login Arsa Izdihar Islam's Blog")
 
 
 @app.route('/logout')
@@ -268,7 +268,7 @@ def show_post(post_id):
             return redirect(url_for("show_post", post_id=post_id))
         flash("You need to log in first before leaving any comments.")
         return redirect(url_for("login"))
-    return render_template("post.html", post=requested_post, form=form, logged_in=current_user.is_authenticated)
+    return render_template("post.html", post=requested_post, form=form, logged_in=current_user.is_authenticated, title=f"{requested_post.title} Arsa Izdihar Islam's Blog")
 
 
 @app.route("/about")
@@ -292,7 +292,7 @@ def contact():
         db.session.add(new_contact)
         db.session.commit()
         return redirect(url_for("contact"))
-    return render_template("contact.html", logged_in=current_user.is_authenticated, form=form)
+    return render_template("contact.html", logged_in=current_user.is_authenticated, form=form, title="Contact Arsa Izdihar Islam's Blog")
 
 
 @app.route("/new-post", methods=["GET", "POST"])
