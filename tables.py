@@ -15,6 +15,9 @@ class User(UserMixin, db.Model):
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="comment_author")
 
+    def __str__(self):
+        return self.name
+
 
 class BlogPost(db.Model):
     __tablename__ = "blog_posts"
@@ -32,6 +35,9 @@ class BlogPost(db.Model):
     img_url = db.Column(db.String(250), nullable=False)
     views = db.Column(db.Integer)
 
+    def __str__(self):
+        return self.title
+
 
 class Comment(db.Model):
     __tablename__ = "comments"
@@ -45,6 +51,9 @@ class Comment(db.Model):
 
     text = db.Column(db.Text, nullable=False)
 
+    def __str__(self):
+        return self.text
+
 
 class Contact(db.Model):
     __tablename__ = "contacts"
@@ -54,6 +63,9 @@ class Contact(db.Model):
     phone_number = db.Column(db.String(20))
     message = db.Column(db.Text)
 
+    def __str__(self):
+        return self.email
+
 
 class Visitor(db.Model):
     __tablename__ = "visitors"
@@ -61,3 +73,6 @@ class Visitor(db.Model):
     date_time = db.Column(db.String(100))
     ip = db.Column(db.String(100))
     user_agent = db.Column(db.String(300))
+
+    def __str__(self):
+        return self.date_time

@@ -9,7 +9,6 @@ from tables import db, User, BlogPost, Contact, Comment, Visitor
 
 admin_app = Blueprint("admin_app", __name__, "static", "templates")
 
-
 def get_jkt_timezone(date_time: datetime):
     return date_time + timedelta(hours=7)
 

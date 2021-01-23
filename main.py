@@ -4,6 +4,8 @@ from flask_ckeditor import CKEditor
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
+from flask_admin import Admin, AdminIndexView, expose
+from flask_admin.contrib.sqla import ModelView
 from forms import RegisterForm, LoginForm, CommentForm, ContactForm
 from flask_gravatar import Gravatar
 from urllib.parse import urlparse
@@ -12,12 +14,30 @@ from admin import admin_app, check_admin, get_jkt_timezone
 import os
 import math
 
+
+class UserModelView(ModelView):
+    def is_accessible(self):
+        return check_admin()
+
+    def _handle_view(self, name, **kwargs):
+        if not self.is_accessible():
+            return abort(403)
+
+
+class HomeView(AdminIndexView):
+    @expose("/")
+    def index(self):
+        if check_admin():
+            return self.render('admin/index.html')
+        else:
+            return redirect(url_for("get_all_posts"))
+
+
 app = Flask(__name__)
-app.register_blueprint(admin_app, url_prefix="/admin")
+app.register_blueprint(admin_app, url_prefix="/admins")
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 ckeditor = CKEditor(app)
 Bootstrap(app)
-
 
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
@@ -26,6 +46,15 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 db.app = app
 db.init_app(app)
+db.create_all()
+admin = Admin(app=app, index_view=HomeView())
+admin.add_views(
+    UserModelView(User, db.session),
+    UserModelView(BlogPost, db.session),
+    UserModelView(Comment, db.session),
+    UserModelView(Contact, db.session),
+    UserModelView(Visitor, db.session)
+)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -33,7 +62,6 @@ login_manager.init_app(app)
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 # CONFIGURE TABLES
 
-db.create_all()
 
 
 @login_manager.user_loader
