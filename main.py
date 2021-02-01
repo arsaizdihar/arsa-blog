@@ -56,6 +56,8 @@ admin.add_views(
     UserModelView(Visitor, db.session)
 )
 
+app.jinja_env.globals.update(check_admin=check_admin)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 
@@ -91,6 +93,8 @@ def get_all_posts():
     posts = BlogPost.query.order_by("id").all()
     del posts[0]
     posts.reverse()
+    if not check_admin():
+        posts = [post for post in posts if not post.hidden]
     max_page = math.ceil(len(posts) / 5)
     next_page = max_page > page_number
     prev_page = page_number > 1
@@ -124,7 +128,7 @@ def sitemap():
     dynamic_urls = list()
     blog_posts = BlogPost.query.all()
     for post in blog_posts:
-        if post.id != 1:
+        if post.id != 1 and not post.hidden:
             url = {
                 "loc": f"{host_base}/post/{post.id}",
                 "lastmod": datetime.strptime(post.date, "%B %d, %Y").strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -192,6 +196,8 @@ def show_post(post_id):
     form = CommentForm()
     requested_post = BlogPost.query.get(post_id)
     if not check_admin():
+        if requested_post.hidden:
+            return abort(404)
         if not requested_post.views:
             requested_post.views = 0
         requested_post.views += 1
