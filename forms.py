@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, TextAreaField
+from wtforms import StringField, SubmitField, PasswordField, TextAreaField, FileField
 from wtforms.validators import DataRequired, URL, Email
+from flask_wtf.file import FileRequired
 from flask_ckeditor import CKEditorField
 import email_validator
 
@@ -38,3 +39,8 @@ class ContactForm(FlaskForm):
     phone_number = StringField("Phone Number", render_kw={'class': "form-control", "placeholder": "Phone Number"})
     message = TextAreaField("Message", validators=[DataRequired()], render_kw={'class': "form-control", "placeholder": "Message", "rows":5})
     submit = SubmitField("SEND")
+
+
+class UploadImageForm(FlaskForm):
+    file = FileField("Opload an image", validators=[FileRequired()], render_kw={'accept': "image/*"})
+    submit = SubmitField("Upload")

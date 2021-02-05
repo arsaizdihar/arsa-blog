@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response, session
+from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response, session, Response
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import datetime, timedelta
@@ -6,13 +6,30 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from forms import RegisterForm, LoginForm, CommentForm, ContactForm
+from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadImageForm
 from flask_gravatar import Gravatar
 from urllib.parse import urlparse
-from tables import db, User, BlogPost, Comment, Contact, Visitor
-from admin import admin_app, check_admin, get_jkt_timezone
+from tables import db, User, BlogPost, Comment, Contact, Visitor, Image
+from admin import admin_app, check_admin, get_jkt_timezone, upload_img
+from jinja2 import Markup
 import os
 import math
+
+
+app = Flask(__name__)
+app.register_blueprint(admin_app, url_prefix="/admins")
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
+ckeditor = CKEditor(app)
+Bootstrap(app)
+
+# CONNECT TO DB
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
+app.config['SESSION_REFRESH_EACH_REQUEST'] = True
+db.app = app
+db.init_app(app)
+db.create_all()
 
 
 class UserModelView(ModelView):
@@ -33,27 +50,30 @@ class HomeView(AdminIndexView):
             return redirect(url_for("get_all_posts"))
 
 
-app = Flask(__name__)
-app.register_blueprint(admin_app, url_prefix="/admins")
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
-ckeditor = CKEditor(app)
-Bootstrap(app)
+class ImageView(ModelView):
+    def _list_thumbnail(view, context, model, name):
+        return Markup(
+            '<img src="%s">' %
+            url_for('get_img', id=model.id)
+        )
 
-# CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
-app.config['SESSION_REFRESH_EACH_REQUEST'] = True
-db.app = app
-db.init_app(app)
-db.create_all()
+    column_formatters = {
+        'img': _list_thumbnail
+    }
+
+    @expose('/new', methods=["POST", "GET"])
+    def create_view(self):
+        return upload_img()
+
+
 admin = Admin(app=app, index_view=HomeView())
 admin.add_views(
     UserModelView(User, db.session),
     UserModelView(BlogPost, db.session),
     UserModelView(Comment, db.session),
     UserModelView(Contact, db.session),
-    UserModelView(Visitor, db.session)
+    UserModelView(Visitor, db.session),
+    ImageView(Image, db.session),
 )
 
 app.jinja_env.globals.update(check_admin=check_admin)
@@ -240,6 +260,14 @@ def contact():
         db.session.commit()
         return redirect(url_for("contact"))
     return render_template("contact.html", logged_in=current_user.is_authenticated, form=form, title="Contact Arsa Izdihar Islam's Blog")
+
+
+@app.route("/img/<int:id>")
+def get_img(id):
+    img = Image.query.get(id)
+    if not img:
+        return abort(404)
+    return Response(img.img, mimetype=img.mimetype)
 
 
 if __name__ == "__main__":

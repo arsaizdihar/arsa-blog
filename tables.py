@@ -78,3 +78,14 @@ class Visitor(db.Model):
 
     def __str__(self):
         return self.date_time
+
+
+class Image(db.Model):
+    __tablename__ = "images"
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(100), nullable=False)
+    img = db.Column(db.LargeBinary, nullable=False)
+    mimetype = db.Column(db.String(100), nullable=False)
+
+    def __str__(self):
+        return self.filename

@@ -43,6 +43,9 @@
           </li>
           {% if current_user.id == 1 %}
           <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('admin.index') }}">Admin</a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="{{ url_for('admin_app.show_contacts') }}">All Contacts</a>
           </li>
           <li class="nav-item">

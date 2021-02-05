@@ -3,12 +3,12 @@ from datetime import datetime, timedelta
 from functools import wraps
 from flask_login import current_user
 from werkzeug.security import generate_password_hash
-from forms import CreatePostForm, LoginForm
-from tables import db, User, BlogPost, Contact, Comment, Visitor
+from forms import CreatePostForm, LoginForm, UploadImageForm
+from werkzeug.utils import secure_filename
+from tables import db, User, BlogPost, Contact, Comment, Visitor, Image
 
 
 admin_app = Blueprint("admin_app", __name__, "static", "templates")
-
 
 def get_jkt_timezone(date_time: datetime):
     return date_time + timedelta(hours=7)
@@ -151,3 +151,21 @@ def delete_comment(post_id):
     db.session.delete(comment)
     db.session.commit()
     return redirect(url_for("show_post", post_id=post_id))
+
+
+@admin_app.route("/upload", methods=["POST", "GET"])
+@admin_only
+def upload_img():
+    form = UploadImageForm()
+    if form.validate_on_submit():
+        pic = form.file.data
+        filename = secure_filename(pic.filename)
+        mimetype = pic.mimetype
+
+        img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
+        db.session.add(img)
+        db.session.commit()
+        return redirect(f"{request.url_root}/admin/image/")
+    return render_template("upload-img.html", form=form, logged_in=True)
+
+
