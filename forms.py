@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, TextAreaField, FileField
-from wtforms.validators import DataRequired, URL, Email
+from wtforms.validators import DataRequired, URL, Email, ValidationError
 from flask_wtf.file import FileRequired
 from flask_ckeditor import CKEditorField
 import email_validator
@@ -43,4 +43,13 @@ class ContactForm(FlaskForm):
 
 class UploadImageForm(FlaskForm):
     file = FileField("Opload an image", validators=[FileRequired()], render_kw={'accept': "image/*"})
+    submit = SubmitField("Upload")
+
+    def validate_file(form, field):
+        if not field.data.mimetype.startswith("image"):
+            raise ValidationError("Invalid file type, image only.")
+
+
+class UploadFileForm(FlaskForm):
+    file = FileField("Opload a file", validators=[FileRequired()])
     submit = SubmitField("Upload")

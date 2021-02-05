@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response, session, Response
+from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response, session, Response, send_file
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import datetime, timedelta
@@ -6,12 +6,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadImageForm
+from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadImageForm, UploadFileForm
 from flask_gravatar import Gravatar
 from urllib.parse import urlparse
-from tables import db, User, BlogPost, Comment, Contact, Visitor, Image
+from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img
 from jinja2 import Markup
+from werkzeug.utils import secure_filename
+import io
 import os
 import math
 
@@ -45,7 +47,7 @@ class HomeView(AdminIndexView):
     @expose("/")
     def index(self):
         if check_admin():
-            return self.render('admin/index.html')
+            return self.render('admin.html')
         else:
             return redirect(url_for("get_all_posts"))
 
@@ -76,6 +78,22 @@ class ImageView(ModelView):
         return upload_img()
 
 
+class FileView(ModelView):
+    def _file_url(view, context, model, name):
+        return Markup(
+            '<a href="{}">{}</a>'.format(
+            url_for('get_file', id=model.id), "Download")
+        )
+
+    column_formatters = {
+        'file': _file_url,
+    }
+
+    @expose('/new', methods=["POST", "GET"])
+    def create_view(self):
+        return upload_file()
+
+
 admin = Admin(app=app, index_view=HomeView())
 admin.add_views(
     UserModelView(User, db.session),
@@ -84,6 +102,7 @@ admin.add_views(
     UserModelView(Contact, db.session),
     UserModelView(Visitor, db.session),
     ImageView(Image, db.session),
+    FileView(File, db.session),
 )
 
 app.jinja_env.globals.update(check_admin=check_admin)
@@ -278,6 +297,33 @@ def get_img(id):
     if not img:
         return abort(404)
     return Response(img.img, mimetype=img.mimetype)
+
+
+@app.route("/upload", methods=["GET", "POST"])
+def upload_file():
+    form = UploadFileForm()
+    if form.validate_on_submit():
+        pic = form.file.data
+        filename = secure_filename(pic.filename)
+        mimetype = pic.mimetype
+
+        file = File(filename=filename, file=pic.read(), mimetype=mimetype)
+        db.session.add(file)
+        db.session.commit()
+        return redirect("/admin/file/")
+    return render_template("upload-img.html", form=form, logged_in=True, file=True)
+
+
+@app.route("/file/<int:id>")
+def get_file(id):
+    file = File.query.get(id)
+    if not file:
+        return abort(404)
+    return send_file(
+        io.BytesIO(file.file),
+        mimetype=file.mimetype,
+        as_attachment=True,
+        attachment_filename=file.filename)
 
 
 if __name__ == "__main__":

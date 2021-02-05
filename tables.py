@@ -89,3 +89,13 @@ class Image(db.Model):
 
     def __str__(self):
         return self.filename
+
+
+class File(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    filename = db.Column(db.String(100), nullable=False)
+    file = db.Column(db.LargeBinary, nullable=False)
+    mimetype = db.Column(db.String(100), nullable=False)
+
+    def __str__(self):
+        return self.filename
