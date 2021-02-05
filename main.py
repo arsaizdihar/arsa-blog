@@ -57,8 +57,18 @@ class ImageView(ModelView):
             url_for('get_img', id=model.id)
         )
 
+    def _img_url(view, context, model, name):
+        return Markup(
+            '<a href="{}">{}</a>'.format(
+            url_for('get_img', id=model.id), f"image {model.id}")
+        )
+
+
+    column_list = ('url', 'filename', 'img')
+
     column_formatters = {
-        'img': _list_thumbnail
+        'img': _list_thumbnail,
+        'url': _img_url
     }
 
     @expose('/new', methods=["POST", "GET"])
