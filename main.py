@@ -326,8 +326,7 @@ def get_file(id):
     return send_file(
         io.BytesIO(file.file),
         mimetype=file.mimetype,
-        as_attachment=True,
-        attachment_filename=file.filename)
+        as_attachment=False)
 
 
 if __name__ == "__main__":
