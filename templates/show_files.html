@@ -112,10 +112,10 @@
         </ol>
         {% if check_admin() %}
         <strong>Download url: {{ request.url_root[:-1] + url_for('get_files', owner=current_user.name) }}</strong>
-        {% endif %}
         <a class="btn btn-primary float-left" href="{{url_for('upload_file')}}">
             Upload More File
           </a>
+        {% endif %}
       </div>
     </div>
   </div>
