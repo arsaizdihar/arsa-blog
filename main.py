@@ -10,7 +10,7 @@ from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadImage
 from flask_gravatar import Gravatar
 from urllib.parse import urlparse
 from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
-from admin import admin_app, check_admin, get_jkt_timezone, upload_img
+from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_url
 from jinja2 import Markup
 from werkzeug.utils import secure_filename
 import io
@@ -55,16 +55,15 @@ class HomeView(AdminIndexView):
 class ImageView(ModelView):
     def _list_thumbnail(view, context, model, name):
         return Markup(
-            '<img src="%s">' %
-            url_for('get_img', id=model.id)
+            '<img src="%s" style="height:400px">' %
+            url_for('get_img', url=model.url)
         )
 
     def _img_url(view, context, model, name):
         return Markup(
             '<a href="{}">{}</a>'.format(
-            url_for('get_img', id=model.id), f"image {model.id}")
+            url_for('get_img', url=model.url), f"image {model.id}")
         )
-
 
     column_list = ('url', 'filename', 'img')
 
@@ -79,14 +78,28 @@ class ImageView(ModelView):
 
 
 class FileView(ModelView):
+    def _file_embed(view, context, model, name):
+        if model.mimetype.startswith("image") or model.mimetype.startswith("video"):
+            return Markup(
+                model.filename +
+                '<br>'
+                '<video width="320" height="240" controls>'
+                '<source src="{}" type="video/mp4">'
+                'Your browser does not support the video tag.'
+                '</video>'.format(url_for("get_file", url=model.url))
+            )
+
     def _file_url(view, context, model, name):
         return Markup(
             '<a href="{}">{}</a>'.format(
-            url_for('get_file', id=model.id), "Download")
+            url_for('get_file', url=model.url), "Download")
         )
+
+    column_list = ('id', 'filename', 'file', 'preview')
 
     column_formatters = {
         'file': _file_url,
+        "preview": _file_embed,
     }
 
     @expose('/new', methods=["POST", "GET"])
@@ -112,8 +125,6 @@ login_manager.init_app(app)
 
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 # CONFIGURE TABLES
-
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -291,9 +302,9 @@ def contact():
     return render_template("contact.html", logged_in=current_user.is_authenticated, form=form, title="Contact Arsa Izdihar Islam's Blog")
 
 
-@app.route("/img/<int:id>")
-def get_img(id):
-    img = Image.query.get(id)
+@app.route("/img/<url>")
+def get_img(url):
+    img = Image.query.filter_by(url=url).first()
     if not img:
         return abort(404)
     return Response(img.img, mimetype=img.mimetype)
@@ -309,18 +320,18 @@ def upload_file():
         pic = form.file.data
         filename = secure_filename(pic.filename)
         mimetype = pic.mimetype
-
-        file = File(filename=filename, file=pic.read(), mimetype=mimetype)
+        url = generate_url(File)
+        file = File(filename=filename, file=pic.read(), mimetype=mimetype, url=url)
         db.session.add(file)
         db.session.commit()
-        url = request.url_root[:-1] + url_for("get_file", id=file.id)
-        return f"<h1><a href='{url}'>{url}</h1>"
+        pre_url = request.url_root[:-1] + url_for("get_file", url=file.url)
+        return f"<h1><a href='{pre_url}'>{pre_url}</h1>"
     return render_template("upload-img.html", form=form, logged_in=True, file=True)
 
 
-@app.route("/file/<int:id>")
-def get_file(id):
-    file = File.query.get(id)
+@app.route("/file/<url>")
+def get_file(url):
+    file = File.query.filter_by(url=url).first()
     if not file:
         return abort(404)
     return send_file(

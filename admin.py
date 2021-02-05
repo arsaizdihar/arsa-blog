@@ -5,10 +5,17 @@ from flask_login import current_user
 from werkzeug.security import generate_password_hash
 from forms import CreatePostForm, LoginForm, UploadImageForm
 from werkzeug.utils import secure_filename
+import uuid
 from tables import db, User, BlogPost, Contact, Comment, Visitor, Image
 
 
 admin_app = Blueprint("admin_app", __name__, "static", "templates")
+
+def generate_url(model):
+    url = uuid.uuid4().hex
+    while model.query.filter_by(url=url).first():
+        url = uuid.uuid4().hex
+    return url
 
 def get_jkt_timezone(date_time: datetime):
     return date_time + timedelta(hours=7)
@@ -161,8 +168,8 @@ def upload_img():
         pic = form.file.data
         filename = secure_filename(pic.filename)
         mimetype = pic.mimetype
-
-        img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
+        url = generate_url(Image)
+        img = Image(filename=filename, img=pic.read(), mimetype=mimetype, url=url)
         db.session.add(img)
         db.session.commit()
         return redirect(f"{request.url_root}/admin/image/")

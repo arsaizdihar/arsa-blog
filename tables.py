@@ -86,6 +86,7 @@ class Image(db.Model):
     filename = db.Column(db.String(100), nullable=False)
     img = db.Column(db.LargeBinary, nullable=False)
     mimetype = db.Column(db.String(100), nullable=False)
+    url = db.Column(db.String(100), nullable=False)
 
     def __str__(self):
         return self.filename
@@ -96,6 +97,7 @@ class File(db.Model):
     filename = db.Column(db.String(100), nullable=False)
     file = db.Column(db.LargeBinary, nullable=False)
     mimetype = db.Column(db.String(100), nullable=False)
+    url = db.Column(db.String(100), nullable=False)
 
     def __str__(self):
         return self.filename
