@@ -91,7 +91,7 @@ class FileView(ModelView):
         elif model.mimetype.startswith("image"):
             return Markup(
                 '<img src="%s" style="height:400px">' %
-                url_for('get_img', filename=model.filename)
+                url_for('get_file', filename=model.filename)
             )
 
     def _file_url(view, context, model, name):
