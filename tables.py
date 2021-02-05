@@ -63,6 +63,7 @@ class Contact(db.Model):
     name = db.Column(db.String(100))
     phone_number = db.Column(db.String(20))
     message = db.Column(db.Text)
+    time = db.Column(db.String(50))
 
     def __str__(self):
         return self.email

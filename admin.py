@@ -36,18 +36,22 @@ def admin_only(f):
 def add_new_post():
     form = CreatePostForm()
     if form.validate_on_submit():
-        new_post = BlogPost(
-            title=form.title.data,
-            subtitle=form.subtitle.data,
-            body=form.body.data,
-            img_url=form.img_url.data,
-            author=current_user,
-            date=get_jkt_timezone(datetime.now()).strftime("%B %d, %Y"),
-            views=0
-        )
-        db.session.add(new_post)
-        db.session.commit()
-        return redirect(url_for("get_all_posts"))
+        if BlogPost.query.filter_by(title=form.title.data).first():
+            form.title.errors.append("This title is already exist.")
+        else:
+            new_post = BlogPost(
+                title=form.title.data,
+                subtitle=form.subtitle.data,
+                body=form.body.data,
+                img_url=form.img_url.data,
+                author=current_user,
+                date=get_jkt_timezone(datetime.now()).strftime("%B %d, %Y"),
+                views=0
+            )
+            db.session.add(new_post)
+            db.session.commit()
+            return redirect(url_for("get_all_posts"))
+        return render_template("make-post.html", form=form, logged_in=current_user.is_authenticated)
     return render_template("make-post.html", form=form, logged_in=current_user.is_authenticated)
 
 

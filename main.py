@@ -234,7 +234,8 @@ def contact():
         email = form.email.data
         phone_number = form.phone_number.data
         message = form.message.data
-        new_contact = Contact(name=name, email=email, phone_number=phone_number, message=message)
+        time = get_jkt_timezone(datetime.now())
+        new_contact = Contact(name=name, email=email, phone_number=phone_number, message=message, time=time)
         db.session.add(new_contact)
         db.session.commit()
         return redirect(url_for("contact"))

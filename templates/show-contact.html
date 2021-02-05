@@ -20,7 +20,7 @@
         <div class="col-lg-8 col-md-10 mx-auto">
             {% for contact in contacts %}
             <div class="post-preview">
-                <h2 class="post-title">{{ contact.name }}</h2>
+                <h2 class="post-title">{{ contact.name }} {{ contact.time }}</h2>
                 <h3 class="post-subtitle">{{ contact.email }} {{ contact.phone_number }}</h3>
                 <p class="post-meta">{{ contact.message }} <a href="{{url_for('admin_app.show_contacts', id=contact.id) }}">✘</a></p>
             </div>
