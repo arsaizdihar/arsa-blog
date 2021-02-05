@@ -13,6 +13,7 @@ from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img
 from jinja2 import Markup
 from werkzeug.utils import secure_filename
+import pyperclip
 import io
 import os
 import math
@@ -301,6 +302,9 @@ def get_img(id):
 
 @app.route("/upload", methods=["GET", "POST"])
 def upload_file():
+    if not current_user.is_authenticated:
+        flash("You need to log in or sign up before uploading file.")
+        return redirect(url_for("login"))
     form = UploadFileForm()
     if form.validate_on_submit():
         pic = form.file.data
@@ -310,7 +314,9 @@ def upload_file():
         file = File(filename=filename, file=pic.read(), mimetype=mimetype)
         db.session.add(file)
         db.session.commit()
-        return redirect("/admin/file/")
+        url = request.url_root[:-1] + url_for("get_file", id=file.id)
+        pyperclip.copy(url)
+        return f"<h1><a href='{url}'>{url}</a><br>Url Copied</h1>"
     return render_template("upload-img.html", form=form, logged_in=True, file=True)
 
 
