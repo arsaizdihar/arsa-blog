@@ -29,8 +29,9 @@ def get_jkt_timezone(date_time: datetime):
 
 
 def check_admin():
+    admin_ids = [1, 2]
     if current_user.is_authenticated:
-        if current_user.id == 1:
+        if current_user.id in admin_ids:
             return True
         return False
     return False

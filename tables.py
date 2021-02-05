@@ -14,6 +14,7 @@ class User(UserMixin, db.Model):
 
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="comment_author")
+    files = relationship("File", back_populates="file_owner")
 
     def __str__(self):
         return self.name
@@ -96,6 +97,8 @@ class File(db.Model):
     filename = db.Column(db.String(100), nullable=False)
     file = db.Column(db.LargeBinary, nullable=False)
     mimetype = db.Column(db.String(100), nullable=False)
+    owner_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    file_owner = relationship("User", back_populates="files")
 
     def __str__(self):
         return self.filename

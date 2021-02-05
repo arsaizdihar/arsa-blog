@@ -6,7 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
-from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadImageForm, UploadFileForm
+from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadFileForm
 from flask_gravatar import Gravatar
 from urllib.parse import urlparse
 from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
@@ -323,13 +323,13 @@ def upload_file():
     form = UploadFileForm()
     if form.validate_on_submit():
         pic = form.file.data
-        filename = generate_filename(File, secure_filename(pic.filename))
+        filename = generate_filename(File, pic.filename)
         mimetype = pic.mimetype
-        file = File(filename=filename, file=pic.read(), mimetype=mimetype)
+        file = File(filename=filename, file=pic.read(), mimetype=mimetype, file_owner=current_user)
         db.session.add(file)
         db.session.commit()
         pre_url = request.url_root[:-1] + url_for("get_file", filename=file.filename)
-        return f"<h1><a href='{pre_url}'>{pre_url}</h1>"
+        return redirect(url_for("get_files"))
     return render_template("upload-img.html", form=form, logged_in=True, file=True)
 
 
@@ -338,11 +338,35 @@ def get_file(filename):
     file = File.query.filter_by(filename=filename).first()
     if not file:
         return abort(404)
+    if request.args.get("download"):
+        return send_file(
+            io.BytesIO(file.file),
+            mimetype=file.mimetype,
+            as_attachment=True,
+            attachment_filename=file.filename,
+        )
     return send_file(
         io.BytesIO(file.file),
         mimetype=file.mimetype,
         as_attachment=False,
     )
+
+
+@app.route("/files")
+def get_files():
+    file_id = request.args.get("file_id")
+    if file_id and check_admin():
+        db.session.delete(File.query.get(file_id))
+        db.session.commit()
+    owner_name = request.args.get("owner")
+    if owner_name:
+        owner = User.query.filter_by(name=owner_name).first()
+        if owner:
+            files = File.query.filter_by(file_owner=owner).order_by("id").all()
+            return render_template("show_files.html", logged_in=False, files=files)
+    if current_user.is_authenticated:
+        files = File.query.filter_by(file_owner=current_user).order_by("id").all()
+        return render_template("show_files.html", logged_in=True, files=files)
 
 
 if __name__ == "__main__":

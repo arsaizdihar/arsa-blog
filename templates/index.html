@@ -37,7 +37,7 @@
           <p class="post-meta">Posted by
             <a href="#">{{post.author.name}}</a>
             on {{post.date}}
-            {% if current_user.id == 1 %}
+            {% if check_admin %}
             <a href="{{url_for('admin_app.delete_post', post_id=post.id) }}">✘</a>
             {% endif %}
             <br>
@@ -61,7 +61,7 @@
         </div>
 
         <!-- New Post -->
-        {% if current_user.id == 1 %}
+        {% if check_admin() %}
         <br>
         <div class="clearfix">
           <a class="btn btn-primary float-left" href="{{url_for('admin_app.upload_img')}}">

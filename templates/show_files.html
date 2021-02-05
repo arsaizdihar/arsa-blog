@@ -29,7 +29,7 @@
 <body>
 
   <!-- Navigation -->
-  <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav">
+  <nav class="navbar navbar-expand-lg navbar-light fixed-top" id="mainNav"">
     <div class="container">
       <a class="navbar-brand" href="{{url_for('get_all_posts')}}">Arsa's Blog</a>
       <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,3 +85,46 @@
       </div>
     </div>
   </nav>
+  <header class="masthead" style="height:200px">
+    <div class="overlay"></div>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-8 col-md-10 mx-auto">\
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto content">
+        <h2>Download Files</h2>
+        <ol>
+        {% for file in files %}
+          <li>
+            {{ file.filename }}
+            <br>
+            <a href="{{ url_for('get_file', filename=file.filename, download=True) }}" class="btn-success btn-sm">Download</a>
+            {% if check_admin() %}
+             <a href="{{ url_for('get_files', file_id=file.id) }}" class="btn-danger btn-sm" ">Delete</a>
+            {% endif %}
+          </li>
+        {% endfor %}
+        </ol>
+        {% if check_admin() %}
+        <strong>Download url: {{ request.url_root[:-1] + url_for('get_files', owner=current_user.name) }}</strong>
+        {% endif %}
+        <a class="btn btn-primary float-left" href="{{url_for('upload_file')}}">
+            Upload More File
+          </a>
+      </div>
+    </div>
+  </div>
+  <!-- Bootstrap core JavaScript -->
+  <script src="{{ url_for('static', filename='vendor/jquery/jquery.min.js')}}"></script>
+  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+
+  <!-- Custom scripts for this template -->
+  <script src="{{ url_for('static', filename='js/clean-blog.min.js')}}"></script>
+</body>
+
+</html>

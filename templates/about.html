@@ -20,7 +20,7 @@
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
         {{ post.body|safe }}
-        {% if current_user.id == 1 %}
+        {% if check_admin() %}
         <hr>
         <div class="clearfix">
           <a class="btn btn-primary float-right" href="{{url_for('admin_app.edit_post', post_id=post.id)}}">Edit</a>

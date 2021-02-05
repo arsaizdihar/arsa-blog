@@ -26,7 +26,7 @@
         <div class="col-lg-8 col-md-10 mx-auto">
             {{ post.body|safe }}
           <hr>
-            {% if current_user.id == 1 %}
+            {% if check_admin() %}
             <div class="clearfix">
             <a class="btn btn-primary float-right" href="{{url_for('admin_app.edit_post', post_id=post.id)}}">Edit Post</a>
             </div>
@@ -45,7 +45,7 @@
                     </div>
                     <div class="commentText">
                       <p>{{ comment.text }}</p>
-                      {% if current_user.id == 1 %}
+                      {% if check_admin() %}
                       <a href="{{url_for('admin_app.delete_comment', comment_id=comment.id, post_id=post.id) }}">✘</a>
                       {% endif %}
                       <span class="date sub-text">{{ comment.comment_author.name }}</span>
