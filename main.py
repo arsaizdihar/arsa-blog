@@ -13,7 +13,6 @@ from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img
 from jinja2 import Markup
 from werkzeug.utils import secure_filename
-import pyperclip
 import io
 import os
 import math
@@ -315,8 +314,7 @@ def upload_file():
         db.session.add(file)
         db.session.commit()
         url = request.url_root[:-1] + url_for("get_file", id=file.id)
-        pyperclip.copy(url)
-        return f"<h1><a href='{url}'>{url}</a><br>Url Copied</h1>"
+        return f"<h1><a href='{url}'>{url}</h1>"
     return render_template("upload-img.html", form=form, logged_in=True, file=True)
 
 
