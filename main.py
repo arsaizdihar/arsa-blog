@@ -10,7 +10,7 @@ from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadImage
 from flask_gravatar import Gravatar
 from urllib.parse import urlparse
 from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
-from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_url
+from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
 from jinja2 import Markup
 from werkzeug.utils import secure_filename
 import io
@@ -56,13 +56,13 @@ class ImageView(ModelView):
     def _list_thumbnail(view, context, model, name):
         return Markup(
             '<img src="%s" style="height:400px">' %
-            url_for('get_img', url=model.url)
+            url_for('get_img', filename=model.filename)
         )
 
     def _img_url(view, context, model, name):
         return Markup(
             '<a href="{}">{}</a>'.format(
-            url_for('get_img', url=model.url), f"image {model.id}")
+            url_for('get_img', filename=model.filename), f"image {model.id}")
         )
 
     column_list = ('url', 'filename', 'img')
@@ -79,20 +79,25 @@ class ImageView(ModelView):
 
 class FileView(ModelView):
     def _file_embed(view, context, model, name):
-        if model.mimetype.startswith("image") or model.mimetype.startswith("video"):
+        if model.mimetype.startswith("video"):
             return Markup(
                 model.filename +
                 '<br>'
                 '<video width="320" height="240" controls>'
                 '<source src="{}" type="video/mp4">'
                 'Your browser does not support the video tag.'
-                '</video>'.format(url_for("get_file", url=model.url))
+                '</video>'.format(url_for("get_file", filename=model.filename))
+            )
+        elif model.mimetype.startswith("image"):
+            return Markup(
+                '<img src="%s" style="height:400px">' %
+                url_for('get_img', filename=model.filename)
             )
 
     def _file_url(view, context, model, name):
         return Markup(
             '<a href="{}">{}</a>'.format(
-            url_for('get_file', url=model.url), "Download")
+            url_for('get_file', filename=model.filename), "Download")
         )
 
     column_list = ('id', 'filename', 'file', 'preview')
@@ -302,9 +307,9 @@ def contact():
     return render_template("contact.html", logged_in=current_user.is_authenticated, form=form, title="Contact Arsa Izdihar Islam's Blog")
 
 
-@app.route("/img/<url>")
-def get_img(url):
-    img = Image.query.filter_by(url=url).first()
+@app.route("/img/<filename>")
+def get_img(filename):
+    img = Image.query.filter_by(filename=filename).first()
     if not img:
         return abort(404)
     return Response(img.img, mimetype=img.mimetype)
@@ -318,26 +323,26 @@ def upload_file():
     form = UploadFileForm()
     if form.validate_on_submit():
         pic = form.file.data
-        filename = secure_filename(pic.filename)
+        filename = generate_filename(File, secure_filename(pic.filename))
         mimetype = pic.mimetype
-        url = generate_url(File)
-        file = File(filename=filename, file=pic.read(), mimetype=mimetype, url=url)
+        file = File(filename=filename, file=pic.read(), mimetype=mimetype)
         db.session.add(file)
         db.session.commit()
-        pre_url = request.url_root[:-1] + url_for("get_file", url=file.url)
+        pre_url = request.url_root[:-1] + url_for("get_file", filename=file.filename)
         return f"<h1><a href='{pre_url}'>{pre_url}</h1>"
     return render_template("upload-img.html", form=form, logged_in=True, file=True)
 
 
-@app.route("/file/<url>")
-def get_file(url):
-    file = File.query.filter_by(url=url).first()
+@app.route("/file/<filename>")
+def get_file(filename):
+    file = File.query.filter_by(filename=filename).first()
     if not file:
         return abort(404)
     return send_file(
         io.BytesIO(file.file),
         mimetype=file.mimetype,
-        as_attachment=False)
+        as_attachment=False,
+    )
 
 
 if __name__ == "__main__":

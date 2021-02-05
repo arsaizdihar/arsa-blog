@@ -11,11 +11,18 @@ from tables import db, User, BlogPost, Contact, Comment, Visitor, Image
 
 admin_app = Blueprint("admin_app", __name__, "static", "templates")
 
-def generate_url(model):
-    url = uuid.uuid4().hex
-    while model.query.filter_by(url=url).first():
-        url = uuid.uuid4().hex
-    return url
+
+def generate_filename(model, filename):
+    i = 0
+    name_list = filename.split(".")
+    file_type = name_list[-1]
+    first_name = name_list[0]
+    last_name = first_name
+    while model.query.filter_by(filename=f"{last_name}.{file_type}").first():
+        i += 1
+        last_name = first_name + str(i)
+    return f"{last_name}.{file_type}"
+
 
 def get_jkt_timezone(date_time: datetime):
     return date_time + timedelta(hours=7)
@@ -166,10 +173,9 @@ def upload_img():
     form = UploadImageForm()
     if form.validate_on_submit():
         pic = form.file.data
-        filename = secure_filename(pic.filename)
+        filename = generate_filename(Image, secure_filename(pic.filename))
         mimetype = pic.mimetype
-        url = generate_url(Image)
-        img = Image(filename=filename, img=pic.read(), mimetype=mimetype, url=url)
+        img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
         db.session.add(img)
         db.session.commit()
         return redirect(f"{request.url_root}/admin/image/")
