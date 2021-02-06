@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
 from jinja2 import Markup
-from werkzeug.utils import secure_filename
+from chat import chat_app, socketio
 import io
 import os
 import math
@@ -20,9 +20,11 @@ import math
 
 app = Flask(__name__)
 app.register_blueprint(admin_app, url_prefix="/admins")
+app.register_blueprint(chat_app, url_prefix="/chat")
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 ckeditor = CKEditor(app)
 Bootstrap(app)
+socketio.init_app(app)
 
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
@@ -130,6 +132,7 @@ login_manager.init_app(app)
 
 gravatar = Gravatar(app, size=100, rating='g', default='retro', force_default=False, force_lower=False, use_ssl=False, base_url=None)
 # CONFIGURE TABLES
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -370,5 +373,6 @@ def get_files():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    # app.run(host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000)
     # app.run(debug=True)
