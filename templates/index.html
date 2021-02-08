@@ -19,6 +19,9 @@
   <div class="container">
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
+        <a class="btn btn-success btn-lg btn-block" href="{{url_for('chat_app.chat_home')}}">
+            Chat App
+          </a>
         {% if all_posts|length - 5*(page_number-1) > 5 %}
         {% set posts = all_posts[(page_number-1)*5:(page_number-1)*5 + 5] %}
         {% else %}

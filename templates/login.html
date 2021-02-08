@@ -34,6 +34,7 @@
         {% endif %}
         {% endwith %}
         {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        <span>Haven't got any account? Register <a href="{{ url_for('register') }}" style="color:red;">here.</a></span>
       </div>
     </div>
   </div>

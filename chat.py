@@ -30,10 +30,7 @@ def chat_home():
         flash("Please Log In first.")
         return redirect(url_for("login"))
     rooms = current_user.chat_rooms
-    for room in rooms:
-        print(room.members.all())
-        print(room.id)
-    if not rooms:
+    if not list(rooms):
         return redirect(url_for('chat_app.add_friend'))
     first_room = rooms[0]
     return render_template("/chat/chat.html", username=current_user.name, rooms=rooms, first_room=first_room)
