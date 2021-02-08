@@ -106,7 +106,8 @@
                     {% else %}
                         <input type="text" class="username" placeholder="Name"/>
                     {% endif %}
-                  <input type="text" class="message" placeholder="Messages"/>
+                    <br>
+                    <textarea class="message" placeholder="Messages" style="width:100%"></textarea>
                   <input type="submit"/>
                 </form>
 
@@ -124,7 +125,7 @@
                     var form = $( 'form' ).on( 'submit', function( e ) {
                       e.preventDefault()
                       let user_name = $( 'input.username' ).val()
-                      let user_input = $( 'input.message' ).val()
+                      let user_input = $( 'textarea.message' ).val()
                       socket.emit( 'my event', {
                         user_name : user_name,
                         message : user_input

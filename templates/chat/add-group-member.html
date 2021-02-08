@@ -1,0 +1,18 @@
+{% from 'chat/field-macro.html' import displayField %}
+{% extends "chat/prelogin-layout.html" %}
+
+{% block title %}Add Group Member{% endblock title%}
+
+{% block content %}
+        <h2>Select A New Member!</h2>
+        <p>Select you group and add a member!</p>
+
+        <form action="{{ url_for('chat_app.add_group_member') }}" method="POST">
+            {{ displayField(form.group_name, 'Group Name') }}
+            {{ displayField(form.group_member, 'Group Member') }}
+            <div class="form-group">
+                <input type="submit" value="Add Member" class="btn btn-warning">
+            </div>
+            {{ form.csrf_token }}
+        </form>
+{% endblock %}

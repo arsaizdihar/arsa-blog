@@ -4,6 +4,16 @@ from flask_login import UserMixin
 
 db = SQLAlchemy()
 
+join_rooms = db.Table('join_rooms',
+                      db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
+                      db.Column("room_id", db.Integer, db.ForeignKey("chat_rooms.id")),
+                      db.Column("is_read", db.Boolean, default=True)
+                      )
+
+user_friends = db.Table('friends',
+                        db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
+                        db.Column("friend_id", db.Integer, db.ForeignKey("users.id")))
+
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
@@ -15,9 +25,39 @@ class User(UserMixin, db.Model):
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="comment_author")
     files = relationship("File", back_populates="file_owner")
+    chats = relationship("Chat", back_populates="user")
+    chat_rooms = db.relationship('ChatRoom', secondary=join_rooms, lazy='dynamic',
+                                 backref=db.backref('members', lazy='dynamic'))
+
+    friends = db.relationship('User',
+                              secondary=user_friends,
+                              primaryjoin=(user_friends.c.user_id == id),
+                              secondaryjoin=(user_friends.c.friend_id == id))
 
     def __str__(self):
         return self.name
+
+
+class Chat(db.Model):
+    __tablename__ = "chats"
+    id = db.Column(db.Integer, primary_key=True)
+    message = db.Column(db.Text)
+    time = db.Column(db.String(25))
+
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    user = relationship("User", back_populates="chats")
+
+    room_id = db.Column(db.Integer, db.ForeignKey("chat_rooms.id"))
+    room = relationship("ChatRoom", back_populates="chats")
+
+
+class ChatRoom(db.Model):
+    __tablename__ = "chat_rooms"
+    id = db.Column(db.Integer, primary_key=True)
+    chats = relationship("Chat", back_populates="room", order_by='Chat.id')
+    name = db.Column(db.String(25))
+    last_modified = db.Column(db.String(50))
+    is_group = db.Column(db.Boolean, default=False)
 
 
 class BlogPost(db.Model):

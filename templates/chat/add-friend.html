@@ -1,0 +1,17 @@
+{% from 'chat/field-macro.html' import displayField %}
+{% extends "chat/prelogin-layout.html" %}
+
+{% block title %}Add Friend{% endblock title%}
+
+{% block content %}
+        <h2>Add a friend!</h2>
+        <p>Select user below to be your friend!</p>
+
+        <form action="{{ url_for('chat_app.add_friend') }}" method="POST">
+            {{ displayField(form.friend_id, 'Friend Name') }}
+            <div class="form-group">
+                <input type="submit" value="Add Friend" class="btn btn-warning">
+            </div>
+            {{ form.csrf_token }}
+        </form>
+{% endblock %}

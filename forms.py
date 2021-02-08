@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, TextAreaField, FileField
-from wtforms.validators import DataRequired, URL, Email, ValidationError
+from wtforms import StringField, SubmitField, PasswordField, TextAreaField, FileField, SelectField
+from wtforms.validators import DataRequired, URL, Email, ValidationError, Length
 from flask_wtf.file import FileRequired
 from flask_ckeditor import CKEditorField
 import email_validator
@@ -53,3 +53,17 @@ class UploadImageForm(FlaskForm):
 class UploadFileForm(FlaskForm):
     file = FileField("Opload a file", validators=[FileRequired()])
     submit = SubmitField("Upload")
+
+
+class AddFriendForm(FlaskForm):
+    friend_id = SelectField('Friend Name', validators=[DataRequired()])
+
+
+class NewGroupForm(FlaskForm):
+    group_name = StringField("Group Name", validators=[DataRequired(), Length(max=25)])
+    group_member = SelectField('Friend Name', validators=[DataRequired()])
+
+
+class AddMemberForm(FlaskForm):
+    group_name = SelectField("Group Name", validators=[DataRequired()])
+    group_member = SelectField('New Member Name', validators=[DataRequired()])
