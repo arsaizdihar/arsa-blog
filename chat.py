@@ -20,7 +20,7 @@ def get_room_name(room):
 
 
 def room_modified_update(room=None, commit=False):
-    today = get_jkt_timezone(datetime.now()).strftime('%Y-%m-%d %H:%M')
+    today = get_jkt_timezone(datetime.now()).strftime('%Y-%m-%d %H:%M:%S:%f')
     if room:
         room.last_modified = today
         if commit:
@@ -29,7 +29,7 @@ def room_modified_update(room=None, commit=False):
 
 
 def room_get_datetime(room):
-    return datetime.strptime(room.last_modified, '%Y-%m-%d %H:%M')
+    return datetime.strptime(room.last_modified, '%Y-%m-%d %H:%M:%S:%f')
 
 
 def get_timestamp():
