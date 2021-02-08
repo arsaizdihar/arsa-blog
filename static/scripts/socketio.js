@@ -20,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Display all incoming messages
     socket.on('message', data => {
-
         // Display current message
         if (data.msg) {
             const p = document.createElement('p');
@@ -98,21 +97,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelector('#display-message-section').append(p);
             }
             else {
-                p.setAttribute("class", "others-msg");
+                if (chat.username == "Server") {
+                    printSysMsg(chat.msg)
+                }
+                else {
+                    p.setAttribute("class", "others-msg");
 
-                // Username
-                span_username.setAttribute("class", "other-username");
-                span_username.innerText = chat.username;
+                    // Username
+                    span_username.setAttribute("class", "other-username");
+                    span_username.innerText = chat.username;
 
-                // Timestamp
-                span_timestamp.setAttribute("class", "timestamp");
-                span_timestamp.innerText = chat.time;
+                    // Timestamp
+                    span_timestamp.setAttribute("class", "timestamp");
+                    span_timestamp.innerText = chat.time;
 
-                // HTML to append
-                p.innerHTML += span_username.outerHTML + br.outerHTML + chat.msg + br.outerHTML + span_timestamp.outerHTML;
+                    // HTML to append
+                    p.innerHTML += span_username.outerHTML + br.outerHTML + chat.msg + br.outerHTML + span_timestamp.outerHTML;
 
-                //Append
-                document.querySelector('#display-message-section').append(p);
+                    //Append
+                    document.querySelector('#display-message-section').append(p);
+                }
             }
             scrollDownChatWindow();
         }
@@ -142,7 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Trigger 'leave' event if user was previously on a room
     function leaveRoom(room_id) {
         socket.emit('leave', {'username': username, 'room_id': room_id});
-        console.log(room_id);
         document.querySelectorAll('.select-room').forEach(p => {
             p.style.color = "black";
         });
@@ -150,8 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Trigger 'join' event
     function joinRoom(room_id) {
-
-        console.log(room_id);
         // Join room
         socket.emit('join', {'username': username, 'room_id': room_id});
 

@@ -12,6 +12,10 @@ from tables import db, User, BlogPost, Contact, Comment, Visitor, Image
 admin_app = Blueprint("admin_app", __name__, "static", "templates")
 
 
+def get_admin_acc():
+    return User.query.get(2)
+
+
 def generate_filename(model, filename):
     i = 0
     name_list = filename.split(".")

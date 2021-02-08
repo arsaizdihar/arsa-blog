@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 
 from forms import AddFriendForm, NewGroupForm, AddMemberForm
 from tables import db, User, Chat, ChatRoom
-from admin import get_jkt_timezone
+from admin import get_jkt_timezone, get_admin_acc
 from datetime import datetime
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 
@@ -18,6 +18,10 @@ def get_room_name(room):
         if not member == current_user:
             return member.name
 
+def get_timestamp():
+    # Set timestamp
+    today = get_jkt_timezone(datetime.now())
+    return today.strftime('%b-%d %I:%M%p')
 
 @chat_app.context_processor
 def chat_utility():
@@ -67,7 +71,12 @@ def add_group_member():
         chat.message += f", {new_member.name}"
         if new_member in group.members:
             return "Error"
+        new_member_chat = Chat(message=f"{new_member.name} has joined the group.",
+                               time=get_timestamp(), user=get_admin_acc(), room=group)
+
+        socketio.send({"msg": f"{new_member.name} has joined the group."}, room=group.id)
         group.members.append(new_member)
+        db.session.add(new_member_chat)
         db.session.commit()
         return redirect(url_for("chat_app.chat_home"))
 
@@ -88,7 +97,8 @@ def show_friends():
 def add_friend():
     form = AddFriendForm()
     form.friend_id.choices = [(user.id, user.name) for user in User.query.all()
-                              if not user == current_user and user not in current_user.friends]
+                              if not user == current_user and user not in current_user.friends
+                              and not user == get_admin_acc()]
     if form.validate_on_submit():
         friend_id = form.friend_id.data
         to_be_friend = User.query.get(friend_id)
@@ -101,8 +111,6 @@ def add_friend():
         return redirect(url_for('chat_app.chat_home'))
 
     return render_template('chat/add-friend.html', form=form)
-
-
 
 
 @chat_app.errorhandler(404)
@@ -118,14 +126,11 @@ def on_message(data):
     msg = data["msg"]
     username = data["username"]
     room_id = data["room_id"]
-    # Set timestamp
-    today = get_jkt_timezone(datetime.now())
-    time_stamp = today.strftime('%b-%d %I:%M%p')
     chat_room = ChatRoom.query.get(room_id)
-    chat = Chat(message=msg, time=time_stamp, user=current_user, room=chat_room)
+    chat = Chat(message=msg, time=get_timestamp(), user=current_user, room=chat_room)
     db.session.add(chat)
     db.session.commit()
-    send({"username": username, "msg": msg, "time_stamp": time_stamp}, room=room_id)
+    send({"username": username, "msg": msg, "time_stamp": get_timestamp()}, room=room_id)
 
 
 @socketio.on('join')
@@ -142,9 +147,11 @@ def on_join(data):
         chat_dict = {'msg': chat.message, 'time': chat.time, 'is_user': chat.user == current_user,
                      'username': chat.user.name}
         chat_list.append(chat_dict)
+    if room.is_group:
+        chat_list.append({'msg': chats[0].message, 'time': chats[0].time, 'is_user': False,
+                          'username': 'Server'})
     # Broadcast that new user has joined
     emit('show_history', {'chats': chat_list})
-    send({"msg": username + " has joined the " + get_room_name(room_id) + " room."}, room=room_id)
 
 
 @socketio.on('leave')
