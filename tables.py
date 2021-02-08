@@ -27,7 +27,8 @@ class User(UserMixin, db.Model):
     files = relationship("File", back_populates="file_owner")
     chats = relationship("Chat", back_populates="user")
     chat_rooms = db.relationship('ChatRoom', secondary=join_rooms, lazy='dynamic',
-                                 backref=db.backref('members', lazy='dynamic'))
+                                 backref=db.backref('members', lazy='dynamic'),
+                                 order_by='ChatRoom.last_modified.desc()')
 
     friends = db.relationship('User',
                               secondary=user_friends,

@@ -18,14 +18,38 @@ def get_room_name(room):
         if not member == current_user:
             return member.name
 
+
+def room_modified_update(room=None, commit=False):
+    today = get_jkt_timezone(datetime.now()).strftime('%Y-%m-%d %H:%M')
+    if room:
+        room.last_modified = today
+        if commit:
+            db.session.commit()
+    return today
+
+
+def room_get_datetime(room):
+    return datetime.strptime(room.last_modified, '%Y-%m-%d %H:%M')
+
+
 def get_timestamp():
     # Set timestamp
     today = get_jkt_timezone(datetime.now())
     return today.strftime('%b-%d %I:%M%p')
 
+
 @chat_app.context_processor
 def chat_utility():
     return dict(get_room_name=get_room_name)
+
+
+@chat_app.route("/init/")
+def last_modified_init():
+    rooms = ChatRoom.query.all()
+    for room in rooms:
+        room_modified_update(room)
+    db.session.commit()
+    return "success"
 
 
 @chat_app.route("/")
@@ -46,7 +70,7 @@ def new_group():
     form.group_member.choices = [(user.id, user.name) for user in current_user.friends]
 
     if form.validate_on_submit():
-        group = ChatRoom(name=form.group_name.data, is_group=True)
+        group = ChatRoom(name=form.group_name.data, is_group=True, last_modified=room_modified_update())
         group.members.extend((current_user, User.query.get(form.group_member.data)))
         message = [member.name for member in group.members]
         chat = Chat(message=f"{', '.join(message)}", time="", user=User.query.get(2), room=group)
@@ -66,6 +90,7 @@ def add_group_member():
 
     if form.validate_on_submit():
         group = ChatRoom.query.get(form.group_name.data)
+        room_modified_update(group)
         new_member = User.query.get(form.group_member.data)
         chat = group.chats[0]
         chat.message += f", {new_member.name}"
@@ -73,7 +98,6 @@ def add_group_member():
             return "Error"
         new_member_chat = Chat(message=f"{new_member.name} has joined the group.",
                                time=get_timestamp(), user=get_admin_acc(), room=group)
-
         socketio.send({"msg": f"{new_member.name} has joined the group."}, room=group.id)
         group.members.append(new_member)
         db.session.add(new_member_chat)
@@ -104,7 +128,7 @@ def add_friend():
         to_be_friend = User.query.get(friend_id)
         current_user.friends.append(to_be_friend)
         to_be_friend.friends.append(current_user)
-        new_chat_room = ChatRoom()
+        new_chat_room = ChatRoom(last_modified=room_modified_update())
         new_chat_room.members.extend((current_user, to_be_friend))
         db.session.add(new_chat_room)
         db.session.commit()
@@ -128,6 +152,7 @@ def on_message(data):
     room_id = data["room_id"]
     chat_room = ChatRoom.query.get(room_id)
     chat = Chat(message=msg, time=get_timestamp(), user=current_user, room=chat_room)
+    room_modified_update(chat_room)
     db.session.add(chat)
     db.session.commit()
     send({"username": username, "msg": msg, "time_stamp": get_timestamp()}, room=room_id)
