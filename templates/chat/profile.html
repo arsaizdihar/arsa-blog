@@ -1,0 +1,26 @@
+{% from 'chat/field-macro.html' import displayField %}
+{% extends "chat/prelogin-layout.html" %}
+
+{% block title %}Edit Profile{% endblock title%}
+{% block flash %} {% endblock flash %}
+{% block content %}
+        <h2>Edit Profile</h2>
+        <p>Edit your name and email here.</p>
+
+        <form action="{{ url_for('chat_app.profile') }}" method="POST">
+            {{ displayField(form.username, 'Name', label=True) }}
+            {{ displayField(form.email, 'Email', label=True) }}
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <h5 class="text-success">{{ message }}</h5>
+                {% endfor %}
+            {% endif %}
+            {% endwith %}
+            <div class="form-group">
+                <input type="submit" value="Save Changes" class="btn btn-warning">
+            </div>
+            {{ form.csrf_token }}
+        </form>
+
+{% endblock %}

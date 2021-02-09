@@ -12,6 +12,8 @@
 
         <!-- Custom css for prelogin pages -->
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/main_style.css') }}">
+        {% block head %}
+        {% endblock head %}
     </head>
 
     <body>
@@ -33,7 +35,7 @@
 
             <!-- Righthand side start -->
             <div id="righthand-side">
-
+                {% block flash %}
                 <!-- Flash error messages start -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                     <!-- The messages, if any, are returned as a list. And not all redenring of the pages will have a message. So we put a condition to check whether the messages list is empty -->
@@ -45,6 +47,7 @@
                         <hr>
                     {% endif %}
                 {% endwith %}
+                {% endblock flash %}
                 <!-- Flask error messages end -->
 
                 {% block content%}

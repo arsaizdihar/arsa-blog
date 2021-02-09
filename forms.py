@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, TextAreaField, FileField, SelectField
-from wtforms.validators import DataRequired, URL, Email, ValidationError, Length
+from wtforms.validators import DataRequired, URL, Email, ValidationError, Length, EqualTo
 from flask_wtf.file import FileRequired
 from flask_ckeditor import CKEditorField
 import email_validator
@@ -26,6 +26,14 @@ class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("LET ME IN!")
+
+
+class ChangePasswordForm(FlaskForm):
+    last_password = PasswordField("Last Password", validators=[DataRequired()])
+    new_password1 = PasswordField("New Password", validators=[DataRequired()])
+    new_password2 = PasswordField("Confirm New Password",
+                                  validators=[DataRequired(),
+                                              EqualTo('new_password1', "Password doesn't match.")])
 
 
 class CommentForm(FlaskForm):
@@ -65,5 +73,10 @@ class NewGroupForm(FlaskForm):
 
 
 class AddMemberForm(FlaskForm):
-    group_name = SelectField("Group Name", validators=[DataRequired()])
+    group_name = SelectField("Group Name", validators=[DataRequired()], default=None)
     group_member = SelectField('New Member Name', validators=[DataRequired()])
+
+
+class ProfileForm(FlaskForm):
+    username = StringField("Name", validators=[DataRequired()])
+    email = StringField("Email", validators=[DataRequired(), Email()])

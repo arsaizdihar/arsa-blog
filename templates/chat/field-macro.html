@@ -1,6 +1,9 @@
 {# Render form fields #}
-{% macro displayField(field, fieldName) %}
+{% macro displayField(field, fieldName, label=False) %}
     <div class="form-group">
+        {% if label %}
+        {{ field.label(class_='control-label') }}
+        {% endif %}
         {{ field(class_='form-control', placeholder=fieldName, **kwargs) }}
         <!-- Error messages -->
         <ul class="formError">

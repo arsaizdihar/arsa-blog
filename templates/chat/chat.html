@@ -39,13 +39,31 @@
                     <div class="collapse navbar-collapse" id="navbarSupportedContent">
                         <ul class="navbar-nav ml-auto">
                             <li class="nav-item">
+                                <div class="dropdown show">
+                                  <a class="dropdown-toggle nav-link" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span style="color: #335177">Profile</span>
+                                  </a>
+
+                                  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <a class="dropdown-item" href="{{ url_for('chat_app.profile') }}">Edit Profile</a>
+                                    <a class="dropdown-item" href="{{ url_for('chat_app.change_password') }}">Change Password</a>
+                                  </div>
+                                </div>
+                            </li>
+                            <li class="nav-item">
                                 <a id="add-friend-btn" class="nav-link" href="{{ url_for('chat_app.add_friend') }}"><span style="color: #335177">Add Friend</span></a>
                             </li>
                             <li class="nav-item">
-                                <a id="new-group-btn" class="nav-link" href="{{ url_for('chat_app.new_group') }}"><span style="color: #335177">New Group</span></a>
-                            </li>
-                            <li class="nav-item">
-                                <a id="add-member-btn" class="nav-link" href="{{ url_for('chat_app.add_group_member') }}"><span style="color: #335177">Add Group Member</span></a>
+                                <div class="dropdown show">
+                                  <a class="dropdown-toggle nav-link" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <span style="color: #335177">Groups</span>
+                                  </a>
+
+                                  <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                    <a class="dropdown-item" href="{{ url_for('chat_app.new_group') }}">New Group</a>
+                                    <a class="dropdown-item" href="{{ url_for('chat_app.add_group_member') }}">Add Group Member</a>
+                                  </div>
+                                </div>
                             </li>
                             <li class="nav-item">
                                 <a id="logout-btn" class="nav-link" href="{{ url_for('logout') }}"><span style="color: #335177">Logout</span></a>

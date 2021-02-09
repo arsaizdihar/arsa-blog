@@ -2,7 +2,6 @@
 {% extends "chat/prelogin-layout.html" %}
 
 {% block title %}Add Group Member{% endblock title%}
-
 {% block content %}
         <h2>Select A New Member!</h2>
         <p>Select you group and add a member!</p>
@@ -15,4 +14,26 @@
             </div>
             {{ form.csrf_token }}
         </form>
-{% endblock %}
+<script>
+    var username = '{{ current_user.name }};'
+    let group_select = document.getElementById('group_name');
+    let group_member = document.getElementById('group_member');
+
+    group_select.onchange = function() {
+        let group = group_select.value;
+
+        fetch('/chat/add-member/' + group).then(function(response) {
+
+            response.json().then(function(data) {
+                let optionHTML = "";
+                console.table(data.new_members);
+                for(let user of data.new_members) {
+                    optionHTML += '<option value="' + user.id + '">' + user.username + '</option>';
+                }
+                group_member.innerHTML = optionHTML;
+
+            });
+        });
+    }
+</script>
+{% endblock content %}

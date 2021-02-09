@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import current_user, login_required
+from werkzeug.security import check_password_hash, generate_password_hash
 
-from forms import AddFriendForm, NewGroupForm, AddMemberForm
+from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm
 from tables import db, User, Chat, ChatRoom
 from admin import get_jkt_timezone, get_admin_acc
 from datetime import datetime
@@ -43,15 +44,6 @@ def chat_utility():
     return dict(get_room_name=get_room_name)
 
 
-@chat_app.route("/init/")
-def last_modified_init():
-    rooms = ChatRoom.query.all()
-    for room in rooms:
-        room_modified_update(room)
-    db.session.commit()
-    return "success"
-
-
 @chat_app.route("/")
 def chat_home():
     if not current_user.is_authenticated:
@@ -85,36 +77,46 @@ def new_group():
 @chat_app.route("/add-member", methods=["POST", "GET"])
 def add_group_member():
     form = AddMemberForm()
-    form.group_name.choices = [(room.id, room.name) for room in current_user.chat_rooms if room.is_group]
-    form.group_member.choices = [(user.id, user.name) for user in current_user.friends]
+    form.group_name.choices = [(None, 'Please select an option')] + [(room.id, room.name) for room in current_user.chat_rooms if room.is_group]
+    form.group_member.choices = [(None, 'Select Group')]
 
     if form.validate_on_submit():
+
         group = ChatRoom.query.get(form.group_name.data)
         room_modified_update(group)
         new_member = User.query.get(form.group_member.data)
-        chat = group.chats[0]
-        chat.message += f", {new_member.name}"
-        if new_member in group.members:
-            return "Error"
-        new_member_chat = Chat(message=f"{new_member.name} has joined the group.",
-                               time=get_timestamp(), user=get_admin_acc(), room=group)
-        socketio.send({"msg": f"{new_member.name} has joined the group."}, room=group.id)
-        group.members.append(new_member)
-        db.session.add(new_member_chat)
-        db.session.commit()
-        return redirect(url_for("chat_app.chat_home"))
+        if not group:
+            form.group_name.errors.append('Please select a valid option.')
+        if not new_member:
+            form.group_member.errors.append('Please select valid option.')
+        if group and new_member:
+            chat = group.chats[0]
+            chat.message += f", {new_member.name}"
+            if new_member in group.members:
+                return "Error"
+            new_member_chat = Chat(message=f"{new_member.name} has joined the group.",
+                                   time=get_timestamp(), user=get_admin_acc(), room=group)
+            socketio.send({"msg": f"{new_member.name} has joined the group."}, room=group.id)
+            group.members.append(new_member)
+            db.session.add(new_member_chat)
+            db.session.commit()
+            return redirect(url_for("chat_app.chat_home"))
 
     return render_template("chat/add-group-member.html", form=form)
 
 
-@chat_app.route("/friends")
-def show_friends():
-    friends = current_user.friends
-    result = f"<ol>"
-    for friend in friends:
-        result += f"<li>{friend.name}</li>"
-    result += "</ol>"
-    return result
+@chat_app.route("/add-member/<int:group_id>")
+@login_required
+def get_new_member(group_id):
+    group = ChatRoom.query.get(group_id)
+    if group:
+        members = group.members
+        if current_user not in members:
+            return jsonify({'error': "bad request, group isn't exist."})
+        new_members = [friend for friend in current_user.friends if friend not in members]
+        new_members_dict = {'new_members': [{'id': user.id, 'username': user.name} for user in new_members]}
+        return jsonify(new_members_dict)
+    return jsonify({'error': "bad request, group isn't exist."}), 400
 
 
 @chat_app.route("/add-friend", methods=["POST", "GET"])
@@ -137,10 +139,38 @@ def add_friend():
     return render_template('chat/add-friend.html', form=form)
 
 
+@chat_app.route("/profile", methods=["POST", "GET"])
+@login_required
+def profile():
+    form = ProfileForm(username=current_user.name, email=current_user.email)
+
+    if form.validate_on_submit():
+        current_user.name = form.username.data
+        current_user.email = form.email.data
+        db.session.commit()
+        flash("Save changed successfully.")
+    return render_template("chat/profile.html", form=form)
+
+
+@chat_app.route("/change-password", methods=["POST", "GET"])
+@login_required
+def change_password():
+    form = ChangePasswordForm()
+    if form.validate_on_submit():
+        if check_password_hash(current_user.password, form.last_password.data):
+            current_user.password = generate_password_hash(form.new_password1.data,
+                                                           method="pbkdf2:sha256", salt_length=8)
+            flash("Password changed successfully.")
+            db.session.commit()
+        else:
+            form.last_password.errors.append("Your password is invalid.")
+    return render_template("chat/change_password.html", form=form)
+
+
 @chat_app.errorhandler(404)
 def page_not_found(e):
     # note that we set the 404 status explicitly
-    return render_template('404.html'), 404
+    return render_template('chat/404.html'), 404
 
 
 @socketio.on('incoming-msg')
@@ -187,5 +217,6 @@ def on_leave(data):
     room_id = data['room_id']
     leave_room(room_id)
     send({"msg": username + " has left the room"}, room=room_id)
+
 
 
