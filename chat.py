@@ -233,7 +233,7 @@ def upload_ajax():
     filename = generate_filename(Image, pic.filename).split(".")[0] + ".jpeg"
     mimetype = pic.mimetype
     pil_image = PilImage.open(io.BytesIO(pic.read()))
-    img = Image(filename=filename, img=JPEGSaveWithTargetSize(pil_image, 100000), mimetype="image/jpeg")
+    img = Image(filename=filename, img=JPEGSaveWithTargetSize(pil_image, 300000), mimetype="image/jpeg")
     room_id = request.headers.get("room_id")
     print(room_id)
 
@@ -263,7 +263,7 @@ def JPEGSaveWithTargetSize(im, target):
         s = buffer.getbuffer().nbytes
         print(s)
         if s <= target:
-            Qmin = m + 1
+            break
         elif s > target:
             Qmax = m - 1
     return buffer.getvalue()
