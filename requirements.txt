@@ -15,6 +15,8 @@ Flask-SQLAlchemy==2.4.4
 flask-uploads==0.2.1
 Flask-WTF==0.14.3
 flask-socketio==5.0.1
+flask-migrate==2.5.3
+flask-script==2.0.6
 idna==2.10
 itsdangerous==1.1.0
 Jinja2==2.11.2

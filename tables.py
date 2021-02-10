@@ -44,6 +44,7 @@ class Chat(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     message = db.Column(db.Text)
     time = db.Column(db.String(25))
+    is_image = db.Column(db.Boolean, default=False)
 
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     user = relationship("User", back_populates="chats")

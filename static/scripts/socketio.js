@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = document.querySelector('#get-username').innerHTML;
 
     // Set default room
-    let room_id = document.querySelector('#first_room_id').value;
     joinRoom(document.querySelector('#first_room_id').value);
 
     // Send messages
@@ -25,24 +24,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const p = document.createElement('p');
             const span_username = document.createElement('span');
             const span_timestamp = document.createElement('span');
-            const br = document.createElement('br')
+            const br = document.createElement('br');
+
             // Display user's own message
-            if (data.username == username) {
-                    p.setAttribute("class", "my-msg");
+            if (data.is_image) {
+                const img = document.createElement("IMG");
+                const anchor = document.createElement("a");
+                p.setAttribute("class", "my-msg");
 
-                    // Username
-                    span_username.setAttribute("class", "my-username");
-                    span_username.innerText = data.username;
+                // Username
+                span_username.setAttribute("class", "my-username");
+                span_username.innerText = data.username;
 
-                    // Timestamp
-                    span_timestamp.setAttribute("class", "timestamp");
-                    span_timestamp.innerText = data.time_stamp;
+                span_timestamp.setAttribute("class", "timestamp");
+                span_timestamp.innerText = data.time_stamp;
 
-                    // HTML to append
-                    p.innerHTML += span_username.outerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.outerHTML
 
-                    //Append
-                    document.querySelector('#display-message-section').append(p);
+                img.setAttribute("src", data.msg);
+                img.setAttribute("class", "img-msg");
+
+                anchor.setAttribute("href", data.msg);
+                anchor.setAttribute("target", "_blank");
+
+                anchor.innerHTML += img.outerHTML;
+
+                p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
+
+                //Append
+                document.querySelector('#display-message-section').append(p);
+            }
+            else if (data.username == username) {
+                p.setAttribute("class", "my-msg");
+
+                // Username
+                span_username.setAttribute("class", "my-username");
+                span_username.innerText = data.username;
+
+                // Timestamp
+                span_timestamp.setAttribute("class", "timestamp");
+                span_timestamp.innerText = data.time_stamp;
+
+                // HTML to append
+                p.innerHTML += span_username.outerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.outerHTML
+
+                //Append
+                document.querySelector('#display-message-section').append(p);
             }
             // Display other users' messages
             else if (typeof data.username !== 'undefined') {
@@ -80,7 +106,33 @@ document.addEventListener('DOMContentLoaded', () => {
         for (var i = 0; i < chats.length; i++){
             const p = document.createElement('p');
             chat = chats[i]
-            if (chat.is_user) {
+            if (chat.is_image) {
+                const img = document.createElement("IMG");
+                const anchor = document.createElement("a");
+                p.setAttribute("class", "my-msg");
+
+                // Username
+                span_username.setAttribute("class", "my-username");
+                span_username.innerText = chat.username;
+
+                span_timestamp.setAttribute("class", "timestamp");
+                span_timestamp.innerText = chat.time;
+
+
+                img.setAttribute("src", chat.msg);
+                img.setAttribute("class", "img-msg");
+
+                anchor.setAttribute("href", chat.msg);
+                anchor.setAttribute("target", "_blank");
+
+                anchor.innerHTML += img.outerHTML;
+
+                p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
+
+                //Append
+                document.querySelector('#display-message-section').append(p);
+            }
+            else if (chat.is_user) {
                 p.setAttribute("class", "my-msg");
                 // Username
                 span_username.setAttribute("class", "my-username");
@@ -143,11 +195,17 @@ document.addEventListener('DOMContentLoaded', () => {
         leaveRoom(room_id);
     };
 
+    document.querySelector("#image-btn").onclick = () => {
+        document.querySelector("#image-upload").click();
+    };
+
+
     // Trigger 'leave' event if user was previously on a room
     function leaveRoom(room_id) {
         socket.emit('leave', {'username': username, 'room_id': room_id});
         document.querySelectorAll('.select-room').forEach(p => {
             p.style.color = "black";
+            p.style.backgroundColor = null;
         });
     }
 

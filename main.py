@@ -8,6 +8,8 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadFileForm
 from flask_gravatar import Gravatar
+from flask_migrate import Migrate, MigrateCommand
+from flask_script import Manager
 from urllib.parse import urlparse
 from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
@@ -34,6 +36,10 @@ app.config['SESSION_REFRESH_EACH_REQUEST'] = True
 db.app = app
 db.init_app(app)
 db.create_all()
+migrate = Migrate(app, db)
+
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 
 class UserModelView(ModelView):

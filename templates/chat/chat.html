@@ -10,11 +10,13 @@
         <!-- Bootstrap -->
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
+          <link href="{{ url_for('static', filename='vendor/fontawesome-free/css/all.min.css')}}" rel="stylesheet" type="text/css">
         <!-- Custom css for chat pages -->
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/chat_style.css') }}">
     </head>
 
     <body>
+
         <!-- Flash error messages -->
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -98,6 +100,10 @@
                     <!-- Type message start -->
                    <div id="input-area" class="input-group mb-3">
                         <input type="text" id="user_message" class="form-control" placeholder="Type here..." aria-label="Type a message" aria-describedby="basic-addon2" autocomplete="off">
+                       <form id="upload-form" enctype="multipart/form-data">
+                        <input type="file" accept="image/*" id="image-upload" name="image-upload">
+                       </form>
+                        <button id="image-btn" class="btn btn-warning" type="button"><i class="far fa-image"></i></button>
                         <div class="input-group-append">
                             <button id="send_message" class="btn btn-warning" type="button">SEND <i class="fas fa-paper-plane"></i></button>
                         </div>
@@ -112,7 +118,9 @@
 
         <!-- Get username -->
         <span id="get-username">{{ username }}</span>
-
+        <script>
+            let room_id = document.querySelector('#first_room_id').value;
+        </script>
         <!-- Custom chat JS -->
         <script src="{{ url_for('static', filename='scripts/chat_page.js') }}"></script>
 
@@ -129,6 +137,8 @@
         <!-- Font Awesome JS -->
         <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script>
         <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script>
+        <script src="{{ url_for('static', filename='/vendor/jquery/jquery.min.js') }}"></script>
+        <script src="{{ url_for('static', filename='/scripts/uploadfile.js') }}"></script>
 
     </body>
 </html>

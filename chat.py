@@ -1,13 +1,16 @@
+import math
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import current_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm
-from tables import db, User, Chat, ChatRoom
-from admin import get_jkt_timezone, get_admin_acc
+from tables import db, User, Chat, ChatRoom, Image
+from admin import get_jkt_timezone, get_admin_acc, generate_filename
 from datetime import datetime
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
-
+from PIL import Image as PilImage
+import io
 chat_app = Blueprint("chat_app", __name__, "static", "templates")
 socketio = SocketIO()
 
@@ -200,7 +203,7 @@ def on_join(data):
     chat_list = []
     for chat in chats:
         chat_dict = {'msg': chat.message, 'time': chat.time, 'is_user': chat.user == current_user,
-                     'username': chat.user.name}
+                     'username': chat.user.name, "is_image": chat.is_image}
         chat_list.append(chat_dict)
     if room.is_group:
         chat_list.append({'msg': chats[0].message, 'time': chats[0].time, 'is_user': False,
@@ -217,6 +220,53 @@ def on_leave(data):
     room_id = data['room_id']
     leave_room(room_id)
     send({"msg": username + " has left the room"}, room=room_id)
+
+
+@socketio.on("upload-img")
+def upload_image(data):
+    print(data)
+
+
+@chat_app.route("/upload_ajax", methods=["POST"])
+def upload_ajax():
+    pic = request.files['image-upload']
+    filename = generate_filename(Image, pic.filename).split(".")[0] + ".jpeg"
+    mimetype = pic.mimetype
+    pil_image = PilImage.open(io.BytesIO(pic.read()))
+    img = Image(filename=filename, img=JPEGSaveWithTargetSize(pil_image, 100000), mimetype="image/jpeg")
+    room_id = request.headers.get("room_id")
+    print(room_id)
+
+    room = ChatRoom.query.get(room_id)
+    print(room)
+    message = url_for("get_img", filename=filename)
+    chat = Chat(message=message, time=get_timestamp(),
+                is_image=True,
+                user=current_user,
+                room=room)
+    db.session.add(chat)
+    db.session.add(img)
+    db.session.commit()
+    socketio.send({"username": current_user.name, "msg": message, "time_stamp": get_timestamp(), "is_image": True}, room=room_id)
+    return "", 200
+
+
+def JPEGSaveWithTargetSize(im, target):
+    """Save the image as JPEG with the given name at best quality that makes less than "target" bytes"""
+    Qmin, Qmax = 0, 50
+    im = im.convert('RGB')
+    while Qmin <= Qmax:
+        m = math.floor((Qmin + Qmax) / 2)
+        buffer = io.BytesIO()
+
+        im.save(buffer, format="JPEG", quality=m)
+        s = buffer.getbuffer().nbytes
+        print(s)
+        if s <= target:
+            Qmin = m + 1
+        elif s > target:
+            Qmax = m - 1
+    return buffer.getvalue()
 
 
 
