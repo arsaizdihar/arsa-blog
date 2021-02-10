@@ -3,7 +3,6 @@ from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.contrib.fixers import ProxyFix
 from flask_login import login_user, LoginManager, current_user, logout_user, login_required
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
@@ -25,7 +24,6 @@ app = Flask(__name__)
 app.register_blueprint(admin_app, url_prefix="/admins")
 app.register_blueprint(chat_app, url_prefix="/chat")
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
-app.wsgi_app = ProxyFix(app.wsgi_app)
 ckeditor = CKEditor(app)
 Bootstrap(app)
 socketio.init_app(app)
