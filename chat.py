@@ -6,7 +6,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm, DeleteGroupForm
 from tables import db, User, Chat, ChatRoom, Image
-from admin import get_jkt_timezone, get_admin_acc, generate_filename
+from admin import get_jkt_timezone, get_admin_acc, generate_filename, admin_only
 from datetime import datetime
 from flask_socketio import SocketIO, join_room, leave_room, send, emit
 from PIL import Image as PilImage
@@ -263,6 +263,18 @@ def on_leave(data):
 @socketio.on("upload-img")
 def upload_image(data):
     print(data)
+
+
+@chat_app.route("/broadcast/<msg>")
+@admin_only
+def broadcast(msg):
+    for room in ChatRoom.query.all():
+        broadcast_chat = Chat(message=msg,
+                               time=get_timestamp(), user=get_admin_acc(), room=room)
+        db.session.add(broadcast_chat)
+    db.session.commit()
+    socketio.send({"msg": msg})
+    return redirect(url_for('chat_app.chat_home'))
 
 
 @chat_app.route("/upload_ajax", methods=["POST"])
