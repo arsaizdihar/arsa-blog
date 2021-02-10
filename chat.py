@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import current_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm
+from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm, DeleteGroupForm
 from tables import db, User, Chat, ChatRoom, Image
 from admin import get_jkt_timezone, get_admin_acc, generate_filename
 from datetime import datetime
@@ -40,6 +40,24 @@ def get_timestamp():
     # Set timestamp
     today = get_jkt_timezone(datetime.now())
     return today.strftime('%b-%d %I:%M%p')
+
+
+def JPEGSaveWithTargetSize(im, target):
+    """Save the image as JPEG with the given name at best quality that makes less than "target" bytes"""
+    Qmin, Qmax = 15, 50
+    im = im.convert('RGB')
+    while Qmin <= Qmax:
+        m = math.floor((Qmin + Qmax) / 2)
+        buffer = io.BytesIO()
+
+        im.save(buffer, format="JPEG", quality=m)
+        s = buffer.getbuffer().nbytes
+        print(s)
+        if s <= target:
+            break
+        elif s > target:
+            Qmax = m - 1
+    return buffer.getvalue()
 
 
 @chat_app.context_processor
@@ -80,11 +98,10 @@ def new_group():
 @chat_app.route("/add-member", methods=["POST", "GET"])
 def add_group_member():
     form = AddMemberForm()
-    form.group_name.choices = [(None, 'Please select an option')] + [(room.id, room.name) for room in current_user.chat_rooms if room.is_group]
-    form.group_member.choices = [(None, 'Select Group')]
+    form.group_name.choices = [(0, 'Please select an option')] + [(room.id, room.name) for room in current_user.chat_rooms if room.is_group]
+    form.group_member.choices = [(0, 'Select Group')]
 
-    if form.validate_on_submit():
-
+    if request.method == "POST":
         group = ChatRoom.query.get(form.group_name.data)
         room_modified_update(group)
         new_member = User.query.get(form.group_member.data)
@@ -170,6 +187,20 @@ def change_password():
     return render_template("chat/change_password.html", form=form)
 
 
+@chat_app.route("/group/delete", methods=["POST", "GET"])
+def delete_group():
+    form = DeleteGroupForm()
+    form.group.choices = [(room.id, room.name) for room in current_user.chat_rooms if room.is_group]
+    if form.validate_on_submit():
+        group_to_delete = ChatRoom.query.get(form.group.data)
+        if group_to_delete not in current_user.chat_rooms:
+            return redirect("chat/401.html"), 401
+        db.session.delete(group_to_delete)
+        db.session.commit()
+        return redirect(url_for("chat_app.chat_home"))
+    return render_template("chat/delete-group.html", form=form)
+
+
 @chat_app.errorhandler(404)
 def page_not_found(e):
     # note that we set the 404 status explicitly
@@ -230,16 +261,15 @@ def upload_image(data):
 @chat_app.route("/upload_ajax", methods=["POST"])
 def upload_ajax():
     pic = request.files['image-upload']
+    room_id = request.headers.get("room_id")
     filename = generate_filename(Image, pic.filename).split(".")[0] + ".jpeg"
-    mimetype = pic.mimetype
+    message = url_for("get_img", filename=filename)
+
     pil_image = PilImage.open(io.BytesIO(pic.read()))
     img = Image(filename=filename, img=JPEGSaveWithTargetSize(pil_image, 300000), mimetype="image/jpeg")
-    room_id = request.headers.get("room_id")
-    print(room_id)
 
     room = ChatRoom.query.get(room_id)
-    print(room)
-    message = url_for("get_img", filename=filename)
+
     chat = Chat(message=message, time=get_timestamp(),
                 is_image=True,
                 user=current_user,
@@ -248,26 +278,6 @@ def upload_ajax():
     db.session.add(chat)
     db.session.add(img)
     db.session.commit()
-    socketio.send({"username": current_user.name, "msg": message, "time_stamp": get_timestamp(), "is_image": True}, room=room_id)
+    socketio.send({"username": current_user.name, "msg": message, "time_stamp": get_timestamp(), "is_image": True},
+                  room=room_id)
     return "", 200
-
-
-def JPEGSaveWithTargetSize(im, target):
-    """Save the image as JPEG with the given name at best quality that makes less than "target" bytes"""
-    Qmin, Qmax = 15, 50
-    im = im.convert('RGB')
-    while Qmin <= Qmax:
-        m = math.floor((Qmin + Qmax) / 2)
-        buffer = io.BytesIO()
-
-        im.save(buffer, format="JPEG", quality=m)
-        s = buffer.getbuffer().nbytes
-        print(s)
-        if s <= target:
-            break
-        elif s > target:
-            Qmax = m - 1
-    return buffer.getvalue()
-
-
-

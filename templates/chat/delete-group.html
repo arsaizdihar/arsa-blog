@@ -1,0 +1,16 @@
+{% from 'chat/field-macro.html' import displayField %}
+{% extends "chat/prelogin-layout.html" %}
+
+{% block title %}Delete Group{% endblock title%}
+{% block content %}
+        <h2>Select A New Member!</h2>
+        <p>Select you group and add a member!</p>
+
+        <form action="{{ url_for('chat_app.delete_group') }}" method="POST">
+            {{ displayField(form.group, 'Group Name', label=True) }}
+            <div class="form-group">
+                <input type="submit" value="Delete Group" class="btn btn-danger">
+            </div>
+            {{ form.csrf_token }}
+        </form>
+{% endblock content %}

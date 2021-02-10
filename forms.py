@@ -74,9 +74,13 @@ class NewGroupForm(FlaskForm):
 
 class AddMemberForm(FlaskForm):
     group_name = SelectField("Group Name", validators=[DataRequired()], default=None)
-    group_member = SelectField('New Member Name', validators=[DataRequired()])
+    group_member = SelectField('New Member Name')
 
 
 class ProfileForm(FlaskForm):
     username = StringField("Name", validators=[DataRequired()])
     email = StringField("Email", validators=[DataRequired(), Email()])
+
+
+class DeleteGroupForm(FlaskForm):
+    group = SelectField("Group Name", validators=[DataRequired()], default=None, coerce=int)
