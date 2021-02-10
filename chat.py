@@ -244,6 +244,7 @@ def upload_ajax():
                 is_image=True,
                 user=current_user,
                 room=room)
+    room_modified_update(room)
     db.session.add(chat)
     db.session.add(img)
     db.session.commit()
