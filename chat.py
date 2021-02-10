@@ -116,7 +116,7 @@ def add_group_member():
                 return "Error"
             new_member_chat = Chat(message=f"{new_member.name} has joined the group.",
                                    time=get_timestamp(), user=get_admin_acc(), room=group)
-            socketio.send({"msg": f"{new_member.name} has joined the group."}, room=group.id)
+            socketio.send({"msg": f"{new_member.name} has joined the group."}, to=group.id)
             group.members.append(new_member)
             db.session.add(new_member_chat)
             db.session.commit()
@@ -196,6 +196,11 @@ def delete_group():
         if group_to_delete not in current_user.chat_rooms:
             return redirect("chat/401.html"), 401
         for chat in group_to_delete.chats:
+            if chat.is_image:
+                filename = chat.message.split("/")[-1]
+                image = Image.query.filter_by(filename=filename).first()
+                if image:
+                    db.session.delete(image)
             db.session.delete(chat)
         db.session.delete(group_to_delete)
         db.session.commit()
@@ -281,5 +286,5 @@ def upload_ajax():
     db.session.add(img)
     db.session.commit()
     socketio.send({"username": current_user.name, "msg": message, "time_stamp": get_timestamp(), "is_image": True},
-                  room=room_id)
+                  to=room_id)
     return "", 200
