@@ -106,57 +106,37 @@ document.addEventListener('DOMContentLoaded', () => {
         for (var i = 0; i < chats.length; i++){
             const p = document.createElement('p');
             chat = chats[i]
-            if (chat.is_image) {
-                const img = document.createElement("IMG");
-                const anchor = document.createElement("a");
-                p.setAttribute("class", "my-msg");
-
-                // Username
-                span_username.setAttribute("class", "my-username");
-                span_username.innerText = chat.username;
-
-                span_timestamp.setAttribute("class", "timestamp");
-                span_timestamp.innerText = chat.time;
-
-
-                img.setAttribute("src", chat.msg);
-                img.setAttribute("class", "img-msg");
-
-                anchor.setAttribute("href", chat.msg);
-                anchor.setAttribute("target", "_blank");
-
-                anchor.innerHTML += img.outerHTML;
-
-                p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
-
-                //Append
-                document.querySelector('#display-message-section').append(p);
-            }
-            else if (chat.is_user) {
-                p.setAttribute("class", "my-msg");
-                // Username
-                span_username.setAttribute("class", "my-username");
-                span_username.innerText = chat.username;
-
-                // Timestamp
-                span_timestamp.setAttribute("class", "timestamp");
-                span_timestamp.innerText = chat.time;
-
-                // HTML to append
-                p.innerHTML += span_username.outerHTML + br.outerHTML + chat.msg + br.outerHTML + span_timestamp.outerHTML
-
-                //Append
-                document.querySelector('#display-message-section').append(p);
-            }
-            else {
-                if (chat.username == "Server") {
-                    printSysMsg(chat.msg)
-                }
-                else {
-                    p.setAttribute("class", "others-msg");
+            if (chat.is_user) {
+                if (chat.is_image) {
+                    const img = document.createElement("IMG");
+                    const anchor = document.createElement("a");
+                    p.setAttribute("class", "my-msg");
 
                     // Username
-                    span_username.setAttribute("class", "other-username");
+                    span_username.setAttribute("class", "my-username");
+                    span_username.innerText = chat.username;
+
+                    span_timestamp.setAttribute("class", "timestamp");
+                    span_timestamp.innerText = chat.time;
+
+
+                    img.setAttribute("src", chat.msg);
+                    img.setAttribute("class", "img-msg");
+
+                    anchor.setAttribute("href", chat.msg);
+                    anchor.setAttribute("target", "_blank");
+
+                    anchor.innerHTML += img.outerHTML;
+
+                    p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
+
+                    //Append
+                    document.querySelector('#display-message-section').append(p);
+                }
+                else {
+                    p.setAttribute("class", "my-msg");
+                    // Username
+                    span_username.setAttribute("class", "my-username");
                     span_username.innerText = chat.username;
 
                     // Timestamp
@@ -164,10 +144,60 @@ document.addEventListener('DOMContentLoaded', () => {
                     span_timestamp.innerText = chat.time;
 
                     // HTML to append
-                    p.innerHTML += span_username.outerHTML + br.outerHTML + chat.msg + br.outerHTML + span_timestamp.outerHTML;
+                    p.innerHTML += span_username.outerHTML + br.outerHTML + chat.msg + br.outerHTML + span_timestamp.outerHTML
 
                     //Append
                     document.querySelector('#display-message-section').append(p);
+                }
+            }
+            else {
+                if (chat.username == "Server") {
+                    printSysMsg(chat.msg)
+                }
+                else {
+                    if (chat.is_image) {
+                        const img = document.createElement("IMG");
+                        const anchor = document.createElement("a");
+                        p.setAttribute("class", "others-msg");
+
+                        // Username
+                        span_username.setAttribute("class", "other-username");
+                        span_username.innerText = chat.username;
+
+                        span_timestamp.setAttribute("class", "timestamp");
+                        span_timestamp.innerText = chat.time;
+
+
+                        img.setAttribute("src", chat.msg);
+                        img.setAttribute("class", "img-msg");
+
+                        anchor.setAttribute("href", chat.msg);
+                        anchor.setAttribute("target", "_blank");
+
+                        anchor.innerHTML += img.outerHTML;
+
+                        p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
+
+                        //Append
+                        document.querySelector('#display-message-section').append(p);
+                    }
+                    else {
+                        p.setAttribute("class", "others-msg");
+
+                        // Username
+                        span_username.setAttribute("class", "other-username");
+                        span_username.innerText = chat.username;
+
+                        // Timestamp
+                        span_timestamp.setAttribute("class", "timestamp");
+                        span_timestamp.innerText = chat.time;
+
+                        // HTML to append
+                        p.innerHTML += span_username.outerHTML + br.outerHTML + chat.msg + br.outerHTML + span_timestamp.outerHTML;
+
+                        //Append
+                        document.querySelector('#display-message-section').append(p);
+                    }
                 }
             }
             scrollDownChatWindow();
