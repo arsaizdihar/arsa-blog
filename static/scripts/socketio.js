@@ -27,66 +27,96 @@ document.addEventListener('DOMContentLoaded', () => {
             const br = document.createElement('br');
 
             // Display user's own message
-            if (data.is_image) {
-                const img = document.createElement("IMG");
-                const anchor = document.createElement("a");
-                p.setAttribute("class", "my-msg");
+            if (data.username == username) {
+                if (data.is_image) {
+                    const img = document.createElement("IMG");
+                    const anchor = document.createElement("a");
+                    p.setAttribute("class", "my-msg");
 
-                // Username
-                span_username.setAttribute("class", "my-username");
-                span_username.innerText = data.username;
+                    // Username
+                    span_username.setAttribute("class", "my-username");
+                    span_username.innerText = data.username;
 
-                span_timestamp.setAttribute("class", "timestamp");
-                span_timestamp.innerText = data.time_stamp;
+                    span_timestamp.setAttribute("class", "timestamp");
+                    span_timestamp.innerText = data.time_stamp;
 
 
-                img.setAttribute("src", data.msg);
-                img.setAttribute("class", "img-msg");
+                    img.setAttribute("src", data.msg);
+                    img.setAttribute("class", "img-msg");
 
-                anchor.setAttribute("href", data.msg);
-                anchor.setAttribute("target", "_blank");
+                    anchor.setAttribute("href", data.msg);
+                    anchor.setAttribute("target", "_blank");
 
-                anchor.innerHTML += img.outerHTML;
+                    anchor.innerHTML += img.outerHTML;
 
-                p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
+                    p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
 
-                //Append
-                document.querySelector('#display-message-section').append(p);
-            }
-            else if (data.username == username) {
-                p.setAttribute("class", "my-msg");
+                    //Append
+                    document.querySelector('#display-message-section').append(p);
+                }
+                else {
+                    p.setAttribute("class", "my-msg");
 
-                // Username
-                span_username.setAttribute("class", "my-username");
-                span_username.innerText = data.username;
+                    // Username
+                    span_username.setAttribute("class", "my-username");
+                    span_username.innerText = data.username;
 
-                // Timestamp
-                span_timestamp.setAttribute("class", "timestamp");
-                span_timestamp.innerText = data.time_stamp;
+                    // Timestamp
+                    span_timestamp.setAttribute("class", "timestamp");
+                    span_timestamp.innerText = data.time_stamp;
 
-                // HTML to append
-                p.innerHTML += span_username.outerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.outerHTML
+                    // HTML to append
+                    p.innerHTML += span_username.outerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.outerHTML
 
-                //Append
-                document.querySelector('#display-message-section').append(p);
+                    //Append
+                    document.querySelector('#display-message-section').append(p);
+                }
             }
             // Display other users' messages
             else if (typeof data.username !== 'undefined') {
-                p.setAttribute("class", "others-msg");
+                if (data.is_image) {
+                    const img = document.createElement("IMG");
+                    const anchor = document.createElement("a");
+                    p.setAttribute("class", "others-msg");
 
-                // Username
-                span_username.setAttribute("class", "other-username");
-                span_username.innerText = data.username;
+                    // Username
+                    span_username.setAttribute("class", "other-username");
+                    span_username.innerText = data.username;
 
-                // Timestamp
-                span_timestamp.setAttribute("class", "timestamp");
-                span_timestamp.innerText = data.time_stamp;
+                    span_timestamp.setAttribute("class", "timestamp");
+                    span_timestamp.innerText = data.time_stamp;
 
-                // HTML to append
-                p.innerHTML += span_username.outerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.outerHTML;
 
-                //Append
-                document.querySelector('#display-message-section').append(p);
+                    img.setAttribute("src", data.msg);
+                    img.setAttribute("class", "img-msg");
+
+                    anchor.setAttribute("href", data.msg);
+                    anchor.setAttribute("target", "_blank");
+
+                    anchor.innerHTML += img.outerHTML;
+
+                    p.innerHTML += span_username.outerHTML + br.outerHTML + anchor.outerHTML + br.outerHTML + span_timestamp.outerHTML;
+
+                    //Append
+                    document.querySelector('#display-message-section').append(p);
+                }
+                else {
+                    p.setAttribute("class", "others-msg");
+
+                    // Username
+                    span_username.setAttribute("class", "other-username");
+                    span_username.innerText = data.username;
+
+                    // Timestamp
+                    span_timestamp.setAttribute("class", "timestamp");
+                    span_timestamp.innerText = data.time_stamp;
+
+                    // HTML to append
+                    p.innerHTML += span_username.outerHTML + br.outerHTML + data.msg + br.outerHTML + span_timestamp.outerHTML;
+
+                    //Append
+                    document.querySelector('#display-message-section').append(p);
+                }
             }
             // Display system message
             else {
