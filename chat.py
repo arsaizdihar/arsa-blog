@@ -195,6 +195,8 @@ def delete_group():
         group_to_delete = ChatRoom.query.get(form.group.data)
         if group_to_delete not in current_user.chat_rooms:
             return redirect("chat/401.html"), 401
+        for chat in group_to_delete.chats:
+            db.session.delete(chat)
         db.session.delete(group_to_delete)
         db.session.commit()
         return redirect(url_for("chat_app.chat_home"))
