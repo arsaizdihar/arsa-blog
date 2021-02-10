@@ -253,7 +253,7 @@ def upload_ajax():
 
 def JPEGSaveWithTargetSize(im, target):
     """Save the image as JPEG with the given name at best quality that makes less than "target" bytes"""
-    Qmin, Qmax = 0, 50
+    Qmin, Qmax = 15, 50
     im = im.convert('RGB')
     while Qmin <= Qmax:
         m = math.floor((Qmin + Qmax) / 2)
