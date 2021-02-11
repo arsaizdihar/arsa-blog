@@ -7,7 +7,7 @@
         <h2>Add a friend!</h2>
         <p>Select user below to be your friend!</p>
         <div class="form-group">
-            <input class="form-control" id="name_search" name="name_search" placeholder="Name" required="" type="text" value="">
+            <input class="form-control typeahead" id="name_search" name="name_search" placeholder="Name" required="" type="text" value="">
         </div>
             <div class="form-group">
                 <button id="search-user" class="btn btn-light">Search</button>
@@ -23,6 +23,7 @@
                 <input type="submit" value="Add Friend" class="btn btn-warning">
             </div>
         </form>
+
         <script>
             var friend_select = document.getElementById('friend_id');
 
@@ -30,7 +31,7 @@
                 if (event.keyCode === 13) {
                     event.preventDefault();
                     document.querySelector('#search-user').click();
-                }z
+                }
             });
 
             document.querySelector('#search-user').onclick = function() {
@@ -53,3 +54,30 @@
             }
         </script>
 {% endblock %}
+{% block script %}
+<script src="{{ url_for('static', filename='/vendor/jquery/jquery.min.js') }}"></script>
+<script src="{{ url_for('static', filename='/scripts/typeahead.bundle.js') }}"></script>
+<script>
+    var autocomplete = {{ autocomplete | tojson }};
+    console.log(autocomplete);
+    $(document).ready(function(){
+        var new_friend = new Bloodhound({
+                datumTokenizer: Bloodhound.tokenizers.whitespace,
+                queryTokenizer: Bloodhound.tokenizers.whitespace,
+                local: autocomplete
+            });
+
+
+        // Initializing the typeahead
+        $('.typeahead').typeahead({
+            hint: true,
+            highlight: true, /* Enable substring highlighting */
+            minLength: 1 /* Specify minimum characters required for showing suggestions */
+        },
+        {
+            name: 'new_friend',
+            source: new_friend
+        });
+    });
+</script>
+{% endblock script %}

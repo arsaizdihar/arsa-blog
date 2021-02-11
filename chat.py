@@ -139,8 +139,19 @@ def get_new_member(group_id):
     return jsonify({'error': "bad request, group isn't exist."}), 400
 
 
+@chat_app.route("/group-member/<int:group_id>")
+def get_group_member(group_id):
+    group = ChatRoom.query.get(group_id)
+    if group:
+        members_dict = {'members':
+                            [{"id": member.id, 'name': member.name} for member in group.members]}
+        print(members_dict)
+        return jsonify(members_dict)
+
+
 @chat_app.route("/add-friend", methods=["POST", "GET"])
 def add_friend():
+    autocomplete = [user.name for user in User.query.all() if not user == current_user and user not in current_user.friends]
     if request.method == "POST":
         friend_id = request.form.get("friend_id")
         to_be_friend = User.query.get(friend_id)
@@ -152,7 +163,7 @@ def add_friend():
         db.session.commit()
         return redirect(url_for('chat_app.chat_home'))
 
-    return render_template('chat/add-friend.html')
+    return render_template('chat/add-friend.html', autocomplete=autocomplete)
 
 
 @chat_app.route("/profile", methods=["POST", "GET"])

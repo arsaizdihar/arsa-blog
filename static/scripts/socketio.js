@@ -274,6 +274,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Join room
         socket.emit('join', {'username': username, 'room_id': room_id});
 
+        fetch('/chat/group-member/' + room_id).then(function(response) {
+
+            response.json().then(function(data) {
+                member_name = [];
+                for(let user of data.members) {
+                    member_name.push(user.name);
+                }
+                console.log(member_name)
+                newTypeahead(member_name);
+            });
+        });
+
+
+
         // Highlight selected room
         document.querySelector('#' + CSS.escape(room_id)).style.color = "#ffc107";
         document.querySelector('#' + CSS.escape(room_id)).style.backgroundColor = "white";
