@@ -141,12 +141,8 @@ def get_new_member(group_id):
 
 @chat_app.route("/add-friend", methods=["POST", "GET"])
 def add_friend():
-    form = AddFriendForm()
-    form.friend_id.choices = [(user.id, user.name) for user in User.query.all()
-                              if not user == current_user and user not in current_user.friends
-                              and not user == get_admin_acc()]
-    if form.validate_on_submit():
-        friend_id = form.friend_id.data
+    if request.method == "POST":
+        friend_id = request.form.get("friend_id")
         to_be_friend = User.query.get(friend_id)
         current_user.friends.append(to_be_friend)
         to_be_friend.friends.append(current_user)
@@ -156,7 +152,7 @@ def add_friend():
         db.session.commit()
         return redirect(url_for('chat_app.chat_home'))
 
-    return render_template('chat/add-friend.html', form=form)
+    return render_template('chat/add-friend.html')
 
 
 @chat_app.route("/profile", methods=["POST", "GET"])
@@ -209,6 +205,16 @@ def delete_group():
         db.session.commit()
         return redirect(url_for("chat_app.chat_home"))
     return render_template("chat/delete-group.html", form=form)
+
+
+@chat_app.route("/user/search/<name>")
+def search_user_by_name(name):
+    look_for = f"%{name}%"
+    users = User.query.filter(User.name.ilike(look_for)).all()
+    response_list = [{"id": user.id, "name": user.name} for user in users if user not in current_user.friends and not user == current_user]
+    if response_list:
+        return jsonify({"users": response_list})
+    return jsonify({"Error": "No user has that name"})
 
 
 @chat_app.errorhandler(404)

@@ -64,6 +64,7 @@ class UploadFileForm(FlaskForm):
 
 
 class AddFriendForm(FlaskForm):
+    name_search = StringField("Search for name", validators=[DataRequired()])
     friend_id = SelectField('Friend Name', validators=[DataRequired()])
 
 

@@ -6,12 +6,50 @@
 {% block content %}
         <h2>Add a friend!</h2>
         <p>Select user below to be your friend!</p>
-
+        <div class="form-group">
+            <input class="form-control" id="name_search" name="name_search" placeholder="Name" required="" type="text" value="">
+        </div>
+            <div class="form-group">
+                <button id="search-user" class="btn btn-light">Search</button>
+            </div>
         <form action="{{ url_for('chat_app.add_friend') }}" method="POST">
-            {{ displayField(form.friend_id, 'Friend Name') }}
+
+            <div class="form-group">
+            <select class="form-control" id="friend_id" name="friend_id" required="">
+                <option value="">Type the name keywords</option>
+            </select>
+            </div>
             <div class="form-group">
                 <input type="submit" value="Add Friend" class="btn btn-warning">
             </div>
-            {{ form.csrf_token }}
         </form>
+        <script>
+            var friend_select = document.getElementById('friend_id');
+
+            document.querySelector('#name_search').addEventListener("keyup", function(event) {
+                if (event.keyCode === 13) {
+                    event.preventDefault();
+                    document.querySelector('#search-user').click();
+                }z
+            });
+
+            document.querySelector('#search-user').onclick = function() {
+                var search_q = document.querySelector('#name_search').value;
+                fetch('/chat/user/search/' + search_q).then(function(response) {
+
+                    response.json().then(function(data) {
+                        let optionHTML = "";
+                        if ("users" in data) {
+                            for(let user of data.users) {
+                                optionHTML += '<option value="' + user.id + '">' + user.name + '</option>';
+                            }
+                        }
+                        else {
+                            optionHTML += '<option value="">No user found.</option>';
+                        }
+                        friend_select.innerHTML = optionHTML;
+                    });
+                });
+            }
+        </script>
 {% endblock %}
