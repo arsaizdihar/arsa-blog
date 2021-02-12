@@ -11,7 +11,6 @@ from datetime import datetime
 from flask_socketio import SocketIO, join_room, leave_room, send, emit, rooms
 from PIL import Image as PilImage
 import io
-import pandas
 chat_app = Blueprint("chat_app", __name__, "static", "templates")
 socketio = SocketIO()
 
@@ -351,11 +350,3 @@ def upload_ajax():
     socketio.send({"username": current_user.name, "msg": message, "time_stamp": get_timestamp(), "is_image": True},
                   to=room_id)
     return "", 200
-
-
-@chat_app.route("/make-rooms")
-def make_rooms():
-    chat_rooms = ChatRoom.query.all()
-    join_rooms = pandas.read_csv("join_rooms.csv")
-    print(join_rooms)
-
