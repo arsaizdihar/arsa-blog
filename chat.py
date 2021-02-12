@@ -52,6 +52,45 @@ def get_timestamp():
     return today.strftime('%b-%d %I:%M%p')
 
 
+def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None, commit=False):
+    if room and user:
+        a = RoomRead(last_modified=room_modified_update())
+        a.member = user
+        a.chat_room = room
+        db.session.add(a)
+    elif room_id and user_id:
+        a = RoomRead(last_modified=room_modified_update())
+        user = User.query.get(user_id)
+        room = ChatRoom.query.get(room_id)
+        a.member = user
+        a.chat_room = room
+        db.session.add(a)
+    elif room and users:
+        for user in users:
+            a = RoomRead(last_modified=room_modified_update())
+            a.member = user
+            a.chat_room = room
+            db.session.add(a)
+    if commit:
+        db.session.commit()
+
+
+def delete_group(room, commit=False):
+    assocs = room.members
+    for assoc in assocs:
+        db.session.delete(assoc)
+    db.session.delete(room)
+    for chat in room.chats:
+        if chat.is_image:
+            filename = chat.message.split("/")[-1]
+            image = Image.query.filter_by(filename=filename).first()
+            if image:
+                db.session.delete(image)
+        db.session.delete(chat)
+    if commit:
+        db.session.commit()
+
+
 def JPEGSaveWithTargetSize(im, target):
     """Save the image as JPEG with the given name at best quality that makes less than "target" bytes"""
     Qmin, Qmax = 15, 50
@@ -95,14 +134,7 @@ def new_group():
     if form.validate_on_submit():
         group = ChatRoom(name=form.group_name.data, is_group=True, last_modified=room_modified_update())
         new_member = User.query.get(form.group_member.data)
-        a = RoomRead()
-        b = RoomRead()
-        a.member = current_user
-        b.member = new_member
-        group.members.append(a)
-        group.members.append(b)
-        db.session.add_all((group, a, b))
-        db.session.commit()
+        make_room_read(room=group, users=(current_user, new_member), commit=True)
         message = [assoc.member.name for assoc in group.members]
         chat = Chat(message=f"{', '.join(message)}", time="", user=User.query.get(2), room=group)
         db.session.add(chat)
@@ -134,11 +166,8 @@ def add_group_member():
             new_member_chat = Chat(message=f"{new_member.name} has joined the group.",
                                    time=get_timestamp(), user=get_admin_acc(), room=group)
             socketio.send({"msg": f"{new_member.name} has joined the group."}, to=group.id)
-            a = RoomRead()
-            a.member = new_member
-            group.members.append(a)
+            make_room_read(room=group, user=new_member)
             db.session.add(new_member_chat)
-            db.session.add(a)
             db.session.commit()
             return redirect(url_for("chat_app.chat_home"))
 
@@ -177,15 +206,8 @@ def add_friend():
         current_user.friends.append(to_be_friend)
         to_be_friend.friends.append(current_user)
         new_chat_room = ChatRoom(last_modified=room_modified_update())
-        a = RoomRead()
-        b = RoomRead()
-        a.member = to_be_friend
-        b.member = current_user
-        new_chat_room.members.append(a)
-        new_chat_room.members.append(b)
+        make_room_read(room=new_chat_room, users=(current_user, to_be_friend))
         db.session.add(new_chat_room)
-        db.session.add(a)
-        db.session.add(b)
         db.session.commit()
         return redirect(url_for('chat_app.chat_home'))
 
@@ -232,14 +254,6 @@ def delete_group():
         group_to_delete = ChatRoom.query.get(form.group.data)
         if group_to_delete not in user_rooms:
             return redirect("chat/401.html"), 401
-        for chat in group_to_delete.chats:
-            if chat.is_image:
-                filename = chat.message.split("/")[-1]
-                image = Image.query.filter_by(filename=filename).first()
-                if image:
-                    db.session.delete(image)
-            db.session.delete(chat)
-        db.session.delete(group_to_delete)
         db.session.commit()
         return redirect(url_for("chat_app.chat_home"))
     return render_template("chat/delete-group.html", form=form)
