@@ -224,7 +224,7 @@ def profile():
         current_user.email = form.email.data
         for room in user_get_rooms(current_user):
             if room.is_group:
-                room.chats[0].message = ", ".join(member.name for member in room.members)
+                room.chats[0].message = ", ".join(member.name for member in room_get_members(room))
         db.session.commit()
         flash("Save changed successfully.")
     return render_template("chat/profile.html", form=form)
