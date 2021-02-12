@@ -34,8 +34,8 @@ def modified_update(room=None, commit=False):
     return today
 
 
-def room_get_datetime(room):
-    return datetime.strptime(room.last_modified, '%Y-%m-%d %H:%M:%S:%f')
+def timestamp_get_datetime(timestamp):
+    return datetime.strptime(timestamp, '%b-%d %I:%M%p')
 
 
 def room_get_members(room):
@@ -53,13 +53,15 @@ def get_timestamp():
 
 
 def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None, commit=False):
+    timestamp = get_timestamp()
+    time = modified_update()
     if room and user:
-        a = RoomRead(last_modified=modified_update())
+        a = RoomRead(last_modified=time, last_read=timestamp)
         a.member = user
         a.chat_room = room
         db.session.add(a)
     elif room_id and user_id:
-        a = RoomRead(last_modified=modified_update())
+        a = RoomRead(last_modified=time, last_read=timestamp)
         user = User.query.get(user_id)
         room = ChatRoom.query.get(room_id)
         a.member = user
@@ -67,7 +69,7 @@ def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None,
         db.session.add(a)
     elif room and users:
         for user in users:
-            a = RoomRead(last_modified=modified_update())
+            a = RoomRead(last_modified=time, last_read=timestamp)
             a.member = user
             a.chat_room = room
             db.session.add(a)
@@ -123,7 +125,14 @@ def chat_home():
     for assoc in current_user.chat_rooms:
         room = assoc.chat_room
         room_name = get_room_name(room)
-        chat_rooms.append({"id": room.id, "name": room_name, "is_read": assoc.is_read})
+        num_unread = 0
+        for chat in room.chats:
+            if chat.time and assoc.last_read:
+                if timestamp_get_datetime(chat.time) > timestamp_get_datetime(assoc.last_read):
+                    num_unread += 1
+        if num_unread == 0:
+            num_unread = ""
+        chat_rooms.append({"id": room.id, "name": room_name, "is_read": assoc.is_read, "num_unread": num_unread})
     if not list(chat_rooms):
         return redirect(url_for('chat_app.add_friend'))
     return render_template("/chat/chat.html", username=current_user.name, rooms=chat_rooms)
@@ -313,6 +322,7 @@ def on_join(data):
     assoc = RoomRead.query.filter_by(user_id=current_user.id, room_id=room_id).first()
     assoc.is_read = True
     assoc.last_read = get_timestamp()
+    print(assoc.last_read)
     db.session.commit()
     chats = room.chats
     chat_list = []

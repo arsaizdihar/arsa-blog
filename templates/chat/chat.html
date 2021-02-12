@@ -86,10 +86,11 @@
                         <h4 id="sidebar-title">Rooms</h4>
                         {% for room in rooms %}
                             {% if room.is_read %}
-                            <p id="p{{ room.id }}" class="select-room cursor-pointer">{{ room.name }}</p>
+                            <p id="p{{ room.id }}" class="select-room cursor-pointer">{{ room.name }}
                             {% else %}
-                            <p id="p{{ room.id}}" class="select-room cursor-pointer room-unread">{{ room.name }}</p>
+                            <p id="p{{ room.id}}" class="select-room cursor-pointer room-unread">{{ room.name }}
                             {% endif %}
+                             <span id="s{{ room.id }}" class="text-danger chat-unread"> {{ room.num_unread }}</span></p>
                         {% endfor %}
                     </div>
                 </nav>

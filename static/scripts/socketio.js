@@ -239,13 +239,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (room){
             if (!room.style.backgroundColor){
                 room.classList.add('room-unread');
+                var span = room.children[0];
+                var read = parseInt(span.innerText);
+                if (read) {
+                    read += 1;
+                }
+                else {
+                    read = 1;
+                }
+                span.innerText = " " + read;
             }
+
             var title = document.querySelector('#sidebar-title');
             var sidebar = document.querySelector('#sidebar-scroll');
             var elements = sidebar.children;
             var next_inner = title.outerHTML + room.outerHTML;
             for (var i = 0; i < elements.length; i++) {
-                console.log(i);
                 var element = elements[i];
                 if( element != title && element != room){
                     next_inner += element.outerHTML;
@@ -270,6 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function pClick(p) {
         let newRoom = p.id.substring(1);
         console.log(newRoom);
+        span = p.children[0];
+        span.innerText = " ";
         // Check if user already in the room
         if (newRoom === room_id) {
             msg = `You are already in ${p.innerHTML} room.`;
