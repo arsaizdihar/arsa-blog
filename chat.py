@@ -299,6 +299,7 @@ def on_message(data):
 def read_callback(data):
     assoc = RoomRead.query.filter_by(room_id=data['room_id'], user_id=current_user.id).first()
     assoc.is_read = True
+    assoc.last_read = get_timestamp()
     db.session.commit()
 
 
@@ -311,7 +312,7 @@ def on_join(data):
     room = ChatRoom.query.get(room_id)
     assoc = RoomRead.query.filter_by(user_id=current_user.id, room_id=room_id).first()
     assoc.is_read = True
-    assoc.last_read = modified_update()
+    assoc.last_read = get_timestamp()
     db.session.commit()
     chats = room.chats
     chat_list = []
