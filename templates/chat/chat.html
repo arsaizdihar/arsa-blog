@@ -82,11 +82,13 @@
 
                 <!-- Sidebar start -->
                 <nav id="sidebar">
-                    <h4>Rooms</h4>
-                    <input type="hidden" id="first_room_id" value="{{ first_room.id }}">
-                    {% for room in rooms %}
-                        <p id="{{ room.id }}" class="select-room cursor-pointer">{{ get_room_name(room) }}</p>
-                    {% endfor %}
+                    <div id="sidebar-scroll">
+                        <h4>Rooms</h4>
+                        <input type="hidden" id="first_room_id" value="{{ first_room.id }}">
+                        {% for room in rooms %}
+                            <p id="{{ room.id }}" class="select-room cursor-pointer">{{ get_room_name(room) }}</p>
+                        {% endfor %}
+                    </div>
                 </nav>
                 <!-- Sidebar end -->
 

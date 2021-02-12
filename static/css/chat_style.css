@@ -24,16 +24,15 @@ body {
 
 #sidebar {
     color: #c9cacb;
+    min-height: 100vh;
     float: left; /* Make this div as wide as its contents */
     height: 100%;
     margin-top: 2em;
-    padding-left: 1em;
     padding-top: 3em;
-    padding-right:1em;
-    padding-bottom: 3000px;
-    margin-bottom: 3000px;
+    padding-left: 1em;
+    padding-right: 1em;
     border-right: 0.5px solid #525252;
-    background-color: ##131c21;
+    background-color: #131c21;
 }
 
 #sidebar p {
@@ -50,6 +49,11 @@ body {
 
 #sidebar.view-sidebar {display: none;}
 
+#sidebar-scroll {
+  max-height: 82vh;
+  overflow: auto;
+}
+
 #show-sidebar-button {
     visibility: hidden;
     opacity: 0;
@@ -59,7 +63,7 @@ body {
 
 @media (max-width: 567px) {
     #sidebar {
-        margin-left: -300px;
+        margin-left: -400px;
         transition: all 0.5s;
     }
 

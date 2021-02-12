@@ -60,7 +60,7 @@ class Chat(db.Model):
 class ChatRoom(db.Model):
     __tablename__ = "chat_rooms"
     id = db.Column(db.Integer, primary_key=True)
-    chats = relationship("Chat", back_populates="room", order_by='Chat.id')
+    chats = relationship("Chat", back_populates="room", order_by='Chat.id', lazy="dynamic")
     name = db.Column(db.String(25))
     last_modified = db.Column(db.String(50))
     is_group = db.Column(db.Boolean, default=False)

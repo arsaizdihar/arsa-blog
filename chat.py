@@ -119,7 +119,7 @@ def chat_home():
     if not current_user.is_authenticated:
         flash("Please Log In first.")
         return redirect(url_for("login"))
-    chat_rooms = [assoc.chat_room for assoc in current_user.chat_rooms]
+    chat_rooms = user_get_rooms(current_user)
     if not list(chat_rooms):
         return redirect(url_for('chat_app.add_friend'))
     first_room = chat_rooms[0]
