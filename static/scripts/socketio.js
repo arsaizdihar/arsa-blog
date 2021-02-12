@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = document.querySelector('#get-username').innerHTML;
 
     // Set default room
-    joinRoom(document.querySelector('#first_room_id').value);
 
     // Send messages
     document.querySelector('#send_message').onclick = () => {
@@ -235,21 +234,52 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    socket.on('notify_chat', data => {
+        var room = document.querySelector("#p"+data.room_id);
+        if (room){
+            if (!room.style.backgroundColor){
+                room.classList.add('room-unread');
+            }
+            var title = document.querySelector('#sidebar-title');
+            var sidebar = document.querySelector('#sidebar-scroll');
+            var elements = sidebar.children;
+            var next_inner = title.outerHTML + room.outerHTML;
+            for (var i = 0; i < elements.length; i++) {
+                console.log(i);
+                var element = elements[i];
+                if( element != title && element != room){
+                    next_inner += element.outerHTML;
+                }
+            }
+            sidebar.innerHTML = next_inner;
+            document.querySelectorAll('.select-room').forEach(p => {
+                p.onclick = () => {
+                    pClick(p);
+                };
+            });
+        }
+    });
+
     // Select a room
     document.querySelectorAll('.select-room').forEach(p => {
         p.onclick = () => {
-            let newRoom = p.id
-            // Check if user already in the room
-            if (newRoom === room_id) {
-                msg = `You are already in ${p.innerHTML} room.`;
-                printSysMsg(msg);
-            } else {
-                leaveRoom(room_id);
-                joinRoom(newRoom);
-                room_id = newRoom;
-            }
+            pClick(p);
         };
     });
+
+    function pClick(p) {
+        let newRoom = p.id.substring(1);
+        console.log(newRoom);
+        // Check if user already in the room
+        if (newRoom === room_id) {
+            msg = `You are already in ${p.innerHTML} room.`;
+            printSysMsg(msg);
+        } else {
+            leaveRoom(room_id);
+            joinRoom(newRoom);
+            room_id = newRoom;
+        }
+    }
 
     // Logout from chat
     document.querySelector("#logout-btn").onclick = () => {
@@ -274,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function joinRoom(room_id) {
         // Join room
         socket.emit('join', {'username': username, 'room_id': room_id});
+        document.querySelector("#p"+room_id).classList.remove("room-unread");
 
         fetch('/chat/group-member/' + room_id).then(function(response) {
 
@@ -291,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Highlight selected room
 //        document.querySelector('#' + CSS.escape(room_id)).style.color = "#ffc107";
-        document.querySelector('#' + CSS.escape(room_id)).style.backgroundColor = "#323739";
+        document.querySelector('#p' + CSS.escape(room_id)).style.backgroundColor = "#323739";
 
         // Clear message area
         document.querySelector('#user_message').value = '';

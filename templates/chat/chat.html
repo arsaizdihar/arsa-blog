@@ -83,10 +83,13 @@
                 <!-- Sidebar start -->
                 <nav id="sidebar">
                     <div id="sidebar-scroll">
-                        <h4>Rooms</h4>
-                        <input type="hidden" id="first_room_id" value="{{ first_room.id }}">
+                        <h4 id="sidebar-title">Rooms</h4>
                         {% for room in rooms %}
-                            <p id="{{ room.id }}" class="select-room cursor-pointer">{{ get_room_name(room) }}</p>
+                            {% if room.is_read %}
+                            <p id="p{{ room.id }}" class="select-room cursor-pointer">{{ room.name }}</p>
+                            {% else %}
+                            <p id="p{{ room.id}}" class="select-room cursor-pointer room-unread">{{ room.name }}</p>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </nav>
@@ -122,7 +125,7 @@
         <!-- Get username -->
         <span id="get-username">{{ username }}</span>
         <script>
-            let room_id = document.querySelector('#first_room_id').value;
+            let room_id = "0";
             var user_id = {{ current_user.id }};
             var member_name = [];
             var members;

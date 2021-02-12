@@ -23,7 +23,7 @@ def get_room_name(room):
             return assoc.member.name
 
 
-def room_modified_update(room=None, commit=False):
+def modified_update(room=None, commit=False):
     today = get_jkt_timezone(datetime.now()).strftime('%Y-%m-%d %H:%M:%S:%f')
     if room:
         room.last_modified = today
@@ -54,12 +54,12 @@ def get_timestamp():
 
 def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None, commit=False):
     if room and user:
-        a = RoomRead(last_modified=room_modified_update())
+        a = RoomRead(last_modified=modified_update())
         a.member = user
         a.chat_room = room
         db.session.add(a)
     elif room_id and user_id:
-        a = RoomRead(last_modified=room_modified_update())
+        a = RoomRead(last_modified=modified_update())
         user = User.query.get(user_id)
         room = ChatRoom.query.get(room_id)
         a.member = user
@@ -67,7 +67,7 @@ def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None,
         db.session.add(a)
     elif room and users:
         for user in users:
-            a = RoomRead(last_modified=room_modified_update())
+            a = RoomRead(last_modified=modified_update())
             a.member = user
             a.chat_room = room
             db.session.add(a)
@@ -119,11 +119,14 @@ def chat_home():
     if not current_user.is_authenticated:
         flash("Please Log In first.")
         return redirect(url_for("login"))
-    chat_rooms = user_get_rooms(current_user)
+    chat_rooms = []
+    for assoc in current_user.chat_rooms:
+        room = assoc.chat_room
+        room_name = get_room_name(room)
+        chat_rooms.append({"id": room.id, "name": room_name, "is_read": assoc.is_read})
     if not list(chat_rooms):
         return redirect(url_for('chat_app.add_friend'))
-    first_room = chat_rooms[0]
-    return render_template("/chat/chat.html", username=current_user.name, rooms=chat_rooms, first_room=first_room)
+    return render_template("/chat/chat.html", username=current_user.name, rooms=chat_rooms)
 
 
 @chat_app.route("/new-group", methods=["POST", "GET"])
@@ -132,7 +135,7 @@ def new_group():
     form.group_member.choices = [(user.id, user.name) for user in current_user.friends]
 
     if form.validate_on_submit():
-        group = ChatRoom(name=form.group_name.data, is_group=True, last_modified=room_modified_update())
+        group = ChatRoom(name=form.group_name.data, is_group=True, last_modified=modified_update())
         new_member = User.query.get(form.group_member.data)
         make_room_read(room=group, users=(current_user, new_member), commit=True)
         message = [assoc.member.name for assoc in group.members]
@@ -152,7 +155,7 @@ def add_group_member():
 
     if request.method == "POST":
         group = ChatRoom.query.get(form.group_name.data)
-        room_modified_update(group)
+        modified_update(group)
         new_member = User.query.get(form.group_member.data)
         if not group:
             form.group_name.errors.append('Please select a valid option.')
@@ -205,7 +208,7 @@ def add_friend():
         to_be_friend = User.query.get(friend_id)
         current_user.friends.append(to_be_friend)
         to_be_friend.friends.append(current_user)
-        new_chat_room = ChatRoom(last_modified=room_modified_update())
+        new_chat_room = ChatRoom(last_modified=modified_update())
         make_room_read(room=new_chat_room, users=(current_user, to_be_friend))
         db.session.add(new_chat_room)
         db.session.commit()
@@ -282,16 +285,21 @@ def on_message(data):
     username = data["username"]
     room_id = data["room_id"]
     chat_room = ChatRoom.query.get(room_id)
+    for assoc in chat_room.members:
+        assoc.is_read = False
     chat = Chat(message=msg, time=get_timestamp(), user=current_user, room=chat_room)
-    room_modified_update(chat_room)
+    modified_update(chat_room)
     db.session.add(chat)
     db.session.commit()
     send({"username": username, "msg": msg, "time_stamp": get_timestamp()}, room=room_id)
+    socketio.emit("notify_chat", {"room_id": room_id})
 
 
 @socketio.on('read')
 def read_callback(data):
-    print(data)
+    assoc = RoomRead.query.filter_by(room_id=data['room_id'], user_id=current_user.id).first()
+    assoc.is_read = True
+    db.session.commit()
 
 
 @socketio.on('join')
@@ -301,6 +309,10 @@ def on_join(data):
     room_id = data["room_id"]
     join_room(room_id)
     room = ChatRoom.query.get(room_id)
+    assoc = RoomRead.query.filter_by(user_id=current_user.id, room_id=room_id).first()
+    assoc.is_read = True
+    assoc.last_read = modified_update()
+    db.session.commit()
     chats = room.chats
     chat_list = []
     for chat in chats:
@@ -357,10 +369,17 @@ def upload_ajax():
                 is_image=True,
                 user=current_user,
                 room=room)
-    room_modified_update(room)
+    modified_update(room)
     db.session.add(chat)
     db.session.add(img)
     db.session.commit()
     socketio.send({"username": current_user.name, "msg": message, "time_stamp": get_timestamp(), "is_image": True},
                   to=room_id)
     return "", 200
+
+
+@chat_app.route("/get-unread")
+def get_room_unread():
+    rooms_unread = [assoc.chat_room for assoc in current_user.chat_rooms if not assoc.is_read]
+    result = [{"room_id": room.id, "room_name": get_room_name(room)} for room in rooms_unread]
+    return jsonify({"rooms": result})
