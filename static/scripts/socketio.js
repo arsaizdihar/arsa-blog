@@ -265,9 +265,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function leaveRoom(room_id) {
         socket.emit('leave', {'username': username, 'room_id': room_id});
         document.querySelectorAll('.select-room').forEach(p => {
-            p.style.color = "black";
             p.style.backgroundColor = null;
         });
+        document.querySelector('#display-message-section').innerHTML = "";
     }
 
     // Trigger 'join' event
@@ -290,11 +290,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         // Highlight selected room
-        document.querySelector('#' + CSS.escape(room_id)).style.color = "#ffc107";
-        document.querySelector('#' + CSS.escape(room_id)).style.backgroundColor = "white";
+//        document.querySelector('#' + CSS.escape(room_id)).style.color = "#ffc107";
+        document.querySelector('#' + CSS.escape(room_id)).style.backgroundColor = "#323739";
 
         // Clear message area
-        document.querySelector('#display-message-section').innerHTML = '';
+        document.querySelector('#user_message').value = '';
 
         // Autofocus on text box
         document.querySelector("#user_message").focus();

@@ -35,6 +35,42 @@ $(document).ready(function(){
         name: 'members',
         source: members
     });
+
+    function hideChatBar() {
+        if($(window).innerWidth() <= 567) {
+            $('#show-sidebar-button').click(function() {
+                if ($('#sidebar').hasClass("view-sidebar")){
+                    $('#rightside-pannel').hide();
+                }
+                else {
+                    $('#rightside-pannel').show();
+                    $('#user_message').focus();
+                }
+                if ($('#navbarSupportedContent').is(":visible")){
+                    $('.navbar-toggler').click();
+                }
+            });
+            $('#sidebar p').each(function() {
+                $(this).click(function() {
+                    $('#sidebar').removeClass('view-sidebar');
+                    $('#rightside-pannel').show();
+                    $('#user_message').focus();
+                });
+            });
+        }
+    }
+
+    hideChatBar();
+
+    $(window).resize(function() {
+        hideChatBar();
+    });
+
+    $('.navbar-toggler').click(function(){
+        if ($('#sidebar').hasClass("view-sidebar") && ($(this).hasClass("collapsed"))){
+            $('#sidebar').removeClass('view-sidebar');
+        }
+    });
 });
 function newTypeahead(member) {
 
