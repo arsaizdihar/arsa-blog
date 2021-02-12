@@ -121,6 +121,7 @@
         <span id="get-username">{{ username }}</span>
         <script>
             let room_id = document.querySelector('#first_room_id').value;
+            var user_id = {{ current_user.id }};
             var member_name = [];
             var members;
             var autocomplete;

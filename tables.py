@@ -4,12 +4,6 @@ from flask_login import UserMixin
 
 db = SQLAlchemy()
 
-join_rooms = db.Table('join_rooms',
-                      db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
-                      db.Column("room_id", db.Integer, db.ForeignKey("chat_rooms.id")),
-                      db.Column("is_read", db.Boolean, default=True)
-                      )
-
 user_friends = db.Table('friends',
                         db.Column("user_id", db.Integer, db.ForeignKey("users.id")),
                         db.Column("friend_id", db.Integer, db.ForeignKey("users.id")))
@@ -26,9 +20,7 @@ class User(UserMixin, db.Model):
     comments = relationship("Comment", back_populates="comment_author")
     files = relationship("File", back_populates="file_owner")
     chats = relationship("Chat", back_populates="user")
-    chat_rooms = db.relationship('ChatRoom', secondary=join_rooms, lazy='dynamic',
-                                 backref=db.backref('members', lazy='dynamic', order_by='User.name'),
-                                 order_by='ChatRoom.last_modified.desc()')
+    chat_rooms = relationship("RoomRead", back_populates="member", order_by="RoomRead.last_modified.desc()")
 
     friends = db.relationship('User',
                               secondary=user_friends,
@@ -37,6 +29,18 @@ class User(UserMixin, db.Model):
 
     def __str__(self):
         return self.name
+
+
+class RoomRead(db.Model):
+    __tablename__ = "room_read"
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
+    room_id = db.Column(db.Integer, db.ForeignKey("chat_rooms.id"), primary_key=True)
+    is_read = db.Column(db.Boolean, default=False)
+    last_read = db.Column(db.String(25))
+    last_modified = db.Column(db.String(50))
+
+    member = relationship("User", back_populates="chat_rooms")
+    chat_room = relationship("ChatRoom", back_populates="members")
 
 
 class Chat(db.Model):
@@ -60,6 +64,7 @@ class ChatRoom(db.Model):
     name = db.Column(db.String(25))
     last_modified = db.Column(db.String(50))
     is_group = db.Column(db.Boolean, default=False)
+    members = relationship("RoomRead", back_populates="chat_room")
 
 
 class BlogPost(db.Model):

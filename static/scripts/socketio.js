@@ -126,6 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         }
         scrollDownChatWindow();
+        socket.emit('read', {'user_id': user_id, 'username': username, 'room_id': room_id});
     });
 
     socket.on('show_history', data => {
