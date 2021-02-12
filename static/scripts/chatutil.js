@@ -44,6 +44,7 @@ $(document).ready(function(){
                 }
                 else {
                     $('#rightside-pannel').show();
+                    $('#rightside-pannel').scrollTop($('#rightside-pannel').height());
                     $('#user_message').focus();
                 }
                 if ($('#navbarSupportedContent').is(":visible")){
@@ -72,6 +73,7 @@ $(document).ready(function(){
         console.log($('#sidebar').hasClass("view-sidebar"))
         if (($('#sidebar').hasClass("view-sidebar"))){
             $('#rightside-pannel').show();
+            $('#rightside-pannel').scrollTop($('#rightside-pannel').height());
         }
         $('#rightside-pannel').scrollTop($('#rightside-pannel').height());
         if ($('#sidebar').hasClass("view-sidebar") && ($(this).hasClass("collapsed"))){
