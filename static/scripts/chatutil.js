@@ -48,6 +48,7 @@ $(document).ready(function(){
                 }
                 if ($('#navbarSupportedContent').is(":visible")){
                     $('.navbar-toggler').click();
+                    $('#rightside-pannel').hide();
                 }
             });
             $('#sidebar p').each(function() {
@@ -68,7 +69,8 @@ $(document).ready(function(){
     });
 
     $('.navbar-toggler').click(function(){
-        if (!($('#sidebar').hasClass("view-sidebar"))){
+        console.log($('#sidebar').hasClass("view-sidebar"))
+        if (($('#sidebar').hasClass("view-sidebar"))){
             $('#rightside-pannel').show();
         }
         $('#rightside-pannel').scrollTop($('#rightside-pannel').height());
