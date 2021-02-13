@@ -22,7 +22,7 @@ from flask_script import Manager
 
 # locals
 from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadFileForm
-from tables import db, User, BlogPost, Comment, Contact, Visitor, Image, File
+from tables import db, User, BlogPost, Comment, Contact, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
 from chat import chat_app, socketio
 
@@ -144,7 +144,6 @@ admin.add_views(
     UserModelView(BlogPost, db.session),
     UserModelView(Comment, db.session),
     UserModelView(Contact, db.session),
-    UserModelView(Visitor, db.session),
     ImageView(Image, db.session),
     FileView(File, db.session),
 )
@@ -174,17 +173,6 @@ def get_all_posts():
     # check for page_number request if there is any
     page_number = request.args.get("page_number")
 
-    # track visitor data
-    if current_user.is_authenticated:
-        if current_user.id != 1:
-            visitor = Visitor(date_time=get_jkt_timezone(datetime.now()), ip=request.remote_addr, user_agent=current_user.name)
-            db.session.add(visitor)
-            db.session.commit()
-    else:
-        visitor = Visitor(date_time=get_jkt_timezone(datetime.now()), ip=request.remote_addr, user_agent=request.user_agent.string)
-        db.session.add(visitor)
-        db.session.commit()
-
     # count total page_number and cut the posts
     if not page_number:
         page_number = 1
@@ -193,7 +181,6 @@ def get_all_posts():
     posts = BlogPost.query.order_by(BlogPost.id.desc()).all()
     if posts:
         del posts[-1]
-        posts.reverse()
 
     # just show post that isn't hidden
     if not check_admin():

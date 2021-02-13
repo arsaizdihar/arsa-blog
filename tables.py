@@ -126,17 +126,6 @@ class Contact(db.Model):
         return self.email
 
 
-class Visitor(db.Model):
-    __tablename__ = "visitors"
-    id = db.Column(db.Integer, primary_key=True)
-    date_time = db.Column(db.String(100))
-    ip = db.Column(db.String(100))
-    user_agent = db.Column(db.String(300))
-
-    def __str__(self):
-        return self.date_time
-
-
 class Image(db.Model):
     __tablename__ = "images"
     id = db.Column(db.Integer, primary_key=True)

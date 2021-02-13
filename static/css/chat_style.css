@@ -300,3 +300,22 @@ input[type=text]:focus{
 .tt-suggestion p {
     margin: 0;
 }
+
+/* width */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: rgba(63, 71, 75, 0.6);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(42, 47, 50, 0.6);
+}

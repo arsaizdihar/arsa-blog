@@ -5,8 +5,7 @@ from flask_login import current_user
 from werkzeug.security import generate_password_hash
 from forms import CreatePostForm, LoginForm, UploadImageForm
 from werkzeug.utils import secure_filename
-import uuid
-from tables import db, User, BlogPost, Contact, Comment, Visitor, Image
+from tables import db, User, BlogPost, Contact, Comment, Image
 
 
 admin_app = Blueprint("admin_app", __name__, "static", "templates")
@@ -141,25 +140,6 @@ def show_contacts():
 def show_users():
     all_users = User.query.all()
     return render_template("show-users.html", users=all_users, logged_in=True)
-
-
-@admin_app.route("/visitors")
-@admin_only
-def show_visitors():
-    visitor_id = request.args.get("id")
-    is_delete_all = request.args.get("delete_all")
-    if is_delete_all:
-        Visitor.query.delete()
-        db.session.commit()
-    elif visitor_id:
-        visitor_id = int(visitor_id)
-        visitor_to_delete = Visitor.query.get(visitor_id)
-        db.session.delete(visitor_to_delete)
-        db.session.commit()
-        return redirect(url_for("admin_app.show_visitors"))
-    all_visitors = Visitor.query.all()
-    all_visitors.reverse()
-    return render_template("show-visitors.html", visitors=all_visitors, logged_in=True)
 
 
 @admin_app.route("/delete-comment/<int:post_id>")
