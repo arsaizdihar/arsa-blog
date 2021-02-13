@@ -79,15 +79,17 @@ def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None,
                 .filter((RoomRead.room_id == room_id and not RoomRead.user_id == user_id)).member.name
         db.session.add(a)
     elif room and users:
-        for user in users:
+        for i in range(len(users)):
             a = RoomRead(last_modified=time, last_read=timestamp)
-            a.member = user
+            a.member = users[i]
             a.chat_room = room
             if room.is_group:
                 a.room_name = room.name
             else:
-                a.room_name = RoomRead.query \
-                    .filter((RoomRead.room_id == room_id and not RoomRead.user_id == user_id)).member.name
+                if i == 0:
+                    a.room_name = users[1].name
+                else:
+                    a.room_name = users[0].name
             db.session.add(a)
     if commit:
         db.session.commit()
