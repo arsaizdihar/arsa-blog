@@ -337,7 +337,6 @@ def on_join(data):
     assoc = RoomRead.query.filter_by(user_id=current_user.id, room_id=room_id).first()
     assoc.is_read = True
     assoc.last_read = get_timestamp()
-    print(assoc.last_read)
     db.session.commit()
     chats = room.chats
     chat_list = []
