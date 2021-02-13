@@ -1,9 +1,8 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField, TextAreaField, FileField, SelectField
-from wtforms.validators import DataRequired, URL, Email, ValidationError, Length, EqualTo
+from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo
 from flask_wtf.file import FileRequired
 from flask_ckeditor import CKEditorField
-import email_validator
 
 
 # WTForm
@@ -17,8 +16,11 @@ class CreatePostForm(FlaskForm):
 
 class RegisterForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    name = StringField("Name", validators=[DataRequired()])
+    password = PasswordField("Password", validators=[DataRequired(), Length(min=6)])
+    password2 = PasswordField("Confirm Password",
+                              validators=[DataRequired(),
+                                          EqualTo('password', "Password doesn't match.")])
+    name = StringField("Name", validators=[DataRequired(), Length(max=25)])
     submit = SubmitField("SIGN ME UP!")
 
 
@@ -30,7 +32,7 @@ class LoginForm(FlaskForm):
 
 class ChangePasswordForm(FlaskForm):
     last_password = PasswordField("Last Password", validators=[DataRequired()])
-    new_password1 = PasswordField("New Password", validators=[DataRequired()])
+    new_password1 = PasswordField("New Password", validators=[DataRequired(), Length(min=6)])
     new_password2 = PasswordField("Confirm New Password",
                                   validators=[DataRequired(),
                                               EqualTo('new_password1', "Password doesn't match.")])
@@ -79,7 +81,7 @@ class AddMemberForm(FlaskForm):
 
 
 class ProfileForm(FlaskForm):
-    username = StringField("Name", validators=[DataRequired()])
+    username = StringField("Name", validators=[DataRequired(), Length(max=25)])
     email = StringField("Email", validators=[DataRequired(), Email()])
 
 

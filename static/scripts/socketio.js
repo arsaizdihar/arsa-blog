@@ -6,14 +6,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Retrieve username
     const username = document.querySelector('#get-username').innerHTML;
 
-    // Set default room
-
     // Send messages
     document.querySelector('#send_message').onclick = () => {
-        socket.emit('incoming-msg', {'msg': document.querySelector('#user_message').value,
-            'username': username, 'room_id': room_id});
-
-        document.querySelector('#user_message').value = '';
+        var message = document.querySelector('#user_message');
+        if (String(message.value).trim()){
+            socket.emit('incoming-msg', {'msg': message.value,
+                'username': username, 'room_id': room_id});
+        }
+        message.value = '';
     };
 
     // Display all incoming messages
@@ -247,7 +247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 else {
                     read = 1;
                 }
-                span.innerText = " " + read;
+                span.innerText = read;
             }
 
             var title = document.querySelector('#sidebar-title');
@@ -279,8 +279,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function pClick(p) {
         let newRoom = p.id.substring(1);
         console.log(newRoom);
-        span = p.children[0];
-        span.innerText = " ";
+        span = p.children[1];
+        span.innerText = "";
         // Check if user already in the room
         if (newRoom === room_id) {
             msg = `You are already in ${p.innerHTML} room.`;
@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Trigger 'join' event
     function joinRoom(room_id) {
+        document.querySelector("#input-area").removeAttribute("hidden");
         // Join room
         socket.emit('join', {'username': username, 'room_id': room_id});
         document.querySelector("#p"+room_id).classList.remove("room-unread");

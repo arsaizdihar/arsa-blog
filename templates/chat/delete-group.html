@@ -3,8 +3,8 @@
 
 {% block title %}Delete Group{% endblock title%}
 {% block content %}
-        <h2>Select A New Member!</h2>
-        <p>Select you group and add a member!</p>
+        <h2>Delete a Group.</h2>
+        <p>Select a group that you want to delete.</p>
 
         <form action="{{ url_for('chat_app.delete_group') }}" method="POST">
             {{ displayField(form.group, 'Group Name', label=True) }}

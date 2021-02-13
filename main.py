@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # flask import
 from flask import Flask, render_template, redirect, url_for, flash, abort, request, make_response, session, Response, send_file
 from flask_bootstrap import Bootstrap
@@ -44,7 +45,7 @@ Bootstrap(app)
 socketio.init_app(app)
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_UR', "sqlite:///blog.db")
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
@@ -189,9 +190,10 @@ def get_all_posts():
         page_number = 1
     else:
         page_number = int(page_number)
-    posts = BlogPost.query.order_by("id").all()
-    del posts[0]
-    posts.reverse()
+    posts = BlogPost.query.order_by(BlogPost.id.desc()).all()
+    if posts:
+        del posts[-1]
+        posts.reverse()
 
     # just show post that isn't hidden
     if not check_admin():
@@ -309,7 +311,7 @@ def show_post(post_id):
     if post_id == 1:
         return abort(404)
     form = CommentForm()
-    requested_post = BlogPost.query.get(post_id)
+    requested_post = BlogPost.query.get_or_404(post_id)
     if not check_admin():
 
         # don't show the hidden post

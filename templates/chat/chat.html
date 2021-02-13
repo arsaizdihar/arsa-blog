@@ -90,7 +90,8 @@
                             {% else %}
                             <p id="p{{ room.id}}" class="select-room cursor-pointer room-unread">{{ room.name }}
                             {% endif %}
-                             <span id="s{{ room.id }}" class="text-danger chat-unread"> {{ room.num_unread }}</span></p>
+                            <span>&nbsp;</span>
+                            <span id="s{{ room.id }}" class="badge badge-pill badge-success chat-unread">{{ room.num_unread }}</span></p>
                         {% endfor %}
                     </div>
                 </nav>
@@ -105,15 +106,15 @@
                     <!-- Display message end -->
 
                     <!-- Type message start -->
-                   <div id="input-area" class="input-group mb-3">
+                   <div id="input-area" class="input-group mb-3" hidden>
                         <input type="text" id="user_message" class="form-control typeahead tt-query" placeholder="Type here..." aria-label="Type a message" aria-describedby="basic-addon2" autocomplete="off">
                        <form id="upload-form" enctype="multipart/form-data">
                         <input type="file" accept="image/*" id="image-upload" name="image-upload">
                        </form>
+                       <div class="btn-group" role="group" aria-label="Basic example">
                         <button id="image-btn" class="btn btn-warning" type="button"><i class="far fa-image"></i></button>
-                        <div class="input-group-append">
-                            <button id="send_message" class="btn btn-warning" type="button">SEND <i class="fas fa-paper-plane"></i></button>
-                        </div>
+                        <button id="send_message" class="btn btn-warning" type="button">SEND <i class="fas fa-paper-plane"></i></button>
+                       </div>
                     </div>
                     <!-- Type message end -->
                 </div>

@@ -91,6 +91,7 @@ body {
   font-weight: bold;
 }
 
+
 #rightside-pannel {
     overflow: hidden; /* Make this div take up the rest of the horizontal space, and no more */
 }

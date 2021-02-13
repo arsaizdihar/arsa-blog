@@ -30,6 +30,9 @@ class User(UserMixin, db.Model):
     def __str__(self):
         return self.name
 
+    def __repr__(self):
+        return f"<{self.name}>"
+
 
 class RoomRead(db.Model):
     __tablename__ = "room_read"
@@ -38,6 +41,7 @@ class RoomRead(db.Model):
     is_read = db.Column(db.Boolean, default=False)
     last_read = db.Column(db.String(25))
     last_modified = db.Column(db.String(50))
+    room_name = db.Column(db.String(50))
 
     member = relationship("User", back_populates="chat_rooms")
     chat_room = relationship("ChatRoom", back_populates="members")
@@ -65,6 +69,11 @@ class ChatRoom(db.Model):
     last_modified = db.Column(db.String(50))
     is_group = db.Column(db.Boolean, default=False)
     members = relationship("RoomRead", back_populates="chat_room")
+
+    def __repr__(self):
+        if self.name:
+            return f"<ChatRoom {self.name}>"
+        return f"<ChatRoom {self.id}>"
 
 
 class BlogPost(db.Model):

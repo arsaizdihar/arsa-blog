@@ -15,14 +15,6 @@ chat_app = Blueprint("chat_app", __name__, "static", "templates")
 socketio = SocketIO()
 
 
-def get_room_name(room):
-    if room.is_group:
-        return room.name
-    for assoc in room.members:
-        if not assoc.member == current_user:
-            return assoc.member.name
-
-
 def modified_update(room=None, commit=False):
     today = get_jkt_timezone(datetime.now()).strftime('%Y-%m-%d %H:%M:%S:%f')
     if room:
@@ -52,13 +44,27 @@ def get_timestamp():
     return today.strftime('%b-%d %I:%M%p')
 
 
-def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None, commit=False):
+def escape_input(msg):
+    result = ""
+    for char in msg:
+        if not 767 < ord(char) < 880:
+            result += char
+    return result
+
+
+def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None, commit=False, name=False):
     timestamp = get_timestamp()
     time = modified_update()
     if room and user:
         a = RoomRead(last_modified=time, last_read=timestamp)
         a.member = user
         a.chat_room = room
+        if name:
+            a.room_name = name
+        else:
+            for assoc in room.members:
+                if not assoc.member == user:
+                    a.room_name = assoc.member.name
         db.session.add(a)
     elif room_id and user_id:
         a = RoomRead(last_modified=time, last_read=timestamp)
@@ -66,18 +72,28 @@ def make_room_read(room=None, user=None, users=None, user_id=None, room_id=None,
         room = ChatRoom.query.get(room_id)
         a.member = user
         a.chat_room = room
+        if room.is_group:
+            a.room_name = room.name
+        else:
+            a.room_name = RoomRead.query\
+                .filter((RoomRead.room_id == room_id and not RoomRead.user_id == user_id)).member.name
         db.session.add(a)
     elif room and users:
         for user in users:
             a = RoomRead(last_modified=time, last_read=timestamp)
             a.member = user
             a.chat_room = room
+            if room.is_group:
+                a.room_name = room.name
+            else:
+                a.room_name = RoomRead.query \
+                    .filter((RoomRead.room_id == room_id and not RoomRead.user_id == user_id)).member.name
             db.session.add(a)
     if commit:
         db.session.commit()
 
 
-def delete_group(room, commit=False):
+def delete_group_from_db(room, commit=False):
     assocs = room.members
     for assoc in assocs:
         db.session.delete(assoc)
@@ -111,11 +127,6 @@ def JPEGSaveWithTargetSize(im, target):
     return buffer.getvalue()
 
 
-@chat_app.context_processor
-def chat_utility():
-    return dict(get_room_name=get_room_name)
-
-
 @chat_app.route("/")
 def chat_home():
     if not current_user.is_authenticated:
@@ -124,7 +135,7 @@ def chat_home():
     chat_rooms = []
     for assoc in current_user.chat_rooms:
         room = assoc.chat_room
-        room_name = get_room_name(room)
+        room_name = assoc.room_name
         num_unread = 0
         for chat in room.chats:
             if chat.time and assoc.last_read:
@@ -237,6 +248,10 @@ def profile():
         for room in user_get_rooms(current_user):
             if room.is_group:
                 room.chats[0].message = ", ".join(member.name for member in room_get_members(room))
+            else:
+                for assoc in room.members:
+                    if not assoc.member == current_user:
+                        assoc.room_name = current_user.name
         db.session.commit()
         flash("Save changed successfully.")
     return render_template("chat/profile.html", form=form)
@@ -266,7 +281,7 @@ def delete_group():
         group_to_delete = ChatRoom.query.get(form.group.data)
         if group_to_delete not in user_rooms:
             return redirect("chat/401.html"), 401
-        db.session.commit()
+        delete_group_from_db(group_to_delete, True)
         return redirect(url_for("chat_app.chat_home"))
     return render_template("chat/delete-group.html", form=form)
 
@@ -290,7 +305,7 @@ def page_not_found(e):
 @socketio.on('incoming-msg')
 def on_message(data):
     """Broadcast messages"""
-    msg = data["msg"]
+    msg = escape_input(data["msg"])
     username = data["username"]
     room_id = data["room_id"]
     chat_room = ChatRoom.query.get(room_id)
@@ -387,10 +402,3 @@ def upload_ajax():
     socketio.send({"username": current_user.name, "msg": message, "time_stamp": get_timestamp(), "is_image": True},
                   to=room_id)
     return "", 200
-
-
-@chat_app.route("/get-unread")
-def get_room_unread():
-    rooms_unread = [assoc.chat_room for assoc in current_user.chat_rooms if not assoc.is_read]
-    result = [{"room_id": room.id, "room_name": get_room_name(room)} for room in rooms_unread]
-    return jsonify({"rooms": result})
