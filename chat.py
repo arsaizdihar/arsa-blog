@@ -332,17 +332,19 @@ def on_message(data):
     chat_room = ChatRoom.query.get(room_id)
     chat = Chat(message=msg, time=get_timestamp(), user=current_user, room=chat_room)
     modified_update(chat_room)
+    for assoc in chat_room.members:
+        assoc.is_read = False
     db.session.add(chat)
     db.session.commit()
     send({"username": username, "msg": msg, "time_stamp": get_timestamp()}, room=room_id)
     socketio.emit("notify_chat", {"room_id": room_id})
     for assoc in chat_room.members:
         if not assoc.member == current_user:
-            assoc.is_read = False
             if not assoc.member.is_online and not assoc.is_to_email:
                 send_email(assoc.member.email, f"New chat from {username}", "Check at https://www.arsaizdihar.site/chat")
-                print("sendddd")
+                print(f"Sent email to {assoc.member.name}")
                 assoc.is_to_email = True
+    db.session.commit()
 
 
 @socketio.on('read')
