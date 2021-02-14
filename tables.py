@@ -12,7 +12,7 @@ user_friends = db.Table('friends',
 class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(100), unique=True)
+    email = db.Column(db.String(100))
     password = db.Column(db.String(100))
     name = db.Column(db.String(100))
 
@@ -49,7 +49,7 @@ class RoomRead(db.Model):
 
 class Chat(db.Model):
     __tablename__ = "chats"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     message = db.Column(db.Text)
     time = db.Column(db.String(25))
     is_image = db.Column(db.Boolean, default=False)
@@ -63,8 +63,8 @@ class Chat(db.Model):
 
 class ChatRoom(db.Model):
     __tablename__ = "chat_rooms"
-    id = db.Column(db.Integer, primary_key=True)
-    chats = relationship("Chat", back_populates="room", order_by='Chat.id', lazy="dynamic")
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    chats = relationship("Chat", back_populates="room", lazy="dynamic")
     name = db.Column(db.String(25))
     last_modified = db.Column(db.String(50))
     is_group = db.Column(db.Boolean, default=False)
@@ -78,14 +78,14 @@ class ChatRoom(db.Model):
 
 class BlogPost(db.Model):
     __tablename__ = "blog_posts"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     author = relationship("User", back_populates="posts")
 
     comments = relationship("Comment", back_populates="parent_post")
 
-    title = db.Column(db.String(250), unique=True, nullable=False)
+    title = db.Column(db.String(200), nullable=False)
     subtitle = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
     body = db.Column(db.Text, nullable=False)
@@ -99,7 +99,7 @@ class BlogPost(db.Model):
 
 class Comment(db.Model):
     __tablename__ = "comments"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
 
     author_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     comment_author = relationship("User", back_populates="comments")
@@ -115,7 +115,7 @@ class Comment(db.Model):
 
 class Contact(db.Model):
     __tablename__ = "contacts"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(100))
     name = db.Column(db.String(100))
     phone_number = db.Column(db.String(20))
@@ -128,7 +128,7 @@ class Contact(db.Model):
 
 class Image(db.Model):
     __tablename__ = "images"
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     filename = db.Column(db.String(100), nullable=False)
     img = db.Column(db.LargeBinary, nullable=False)
     mimetype = db.Column(db.String(100), nullable=False)
@@ -138,7 +138,7 @@ class Image(db.Model):
 
 
 class File(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     filename = db.Column(db.String(100), nullable=False)
     file = db.Column(db.LargeBinary, nullable=False)
     mimetype = db.Column(db.String(100), nullable=False)

@@ -1,12 +1,15 @@
 import math
+import smtplib
+from email.message import EmailMessage
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import current_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm, DeleteGroupForm
+from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm, DeleteGroupForm, \
+    SendEmailForm
 from tables import db, User, Chat, ChatRoom, Image, RoomRead
-from admin import get_jkt_timezone, get_admin_acc, generate_filename, admin_only
+from admin import get_jkt_timezone, get_admin_acc, generate_filename, admin_only, check_admin
 from datetime import datetime
 from flask_socketio import SocketIO, join_room, leave_room, send, emit, rooms
 from PIL import Image as PilImage
@@ -140,9 +143,11 @@ def chat_home():
         room_name = assoc.room_name
         num_unread = 0
         for chat in room.chats:
-            if chat.time and assoc.last_read:
-                if timestamp_get_datetime(chat.time) > timestamp_get_datetime(assoc.last_read):
-                    num_unread += 1
+            if chat:
+                if chat.time and assoc.last_read:
+                    if timestamp_get_datetime(chat.time) > timestamp_get_datetime(assoc.last_read):
+                        print(assoc.member)
+                        num_unread += 1
         if num_unread == 0:
             num_unread = ""
         chat_rooms.append({"id": room.id, "name": room_name, "is_read": assoc.is_read, "num_unread": num_unread})
@@ -378,6 +383,26 @@ def broadcast(msg):
     db.session.commit()
     socketio.send({"msg": msg})
     return redirect(url_for('chat_app.chat_home'))
+
+
+@chat_app.route("/mail", methods=["POST", "GET"])
+@admin_only
+def mail():
+    form = SendEmailForm()
+    MY_EMAIL = "arsadihar@arsaiz.com"
+    MY_PASSWORD = "arsa27152312"
+
+    if form.validate_on_submit():
+        msg = EmailMessage()
+        msg['From'] = MY_EMAIL
+        msg['To'] = form.to_email.data
+        msg['Subject'] = form.subject.data
+        msg.set_content(form.message.data)
+        with smtplib.SMTP_SSL("sgx1.upnet.my.id", 465) as connection:
+            connection.login(MY_EMAIL, MY_PASSWORD)
+            connection.send_message(msg)
+            flash("success")
+    return render_template("chat/send-email.html", form=form)
 
 
 @chat_app.route("/upload_ajax", methods=["POST"])

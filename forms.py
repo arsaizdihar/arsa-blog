@@ -87,3 +87,9 @@ class ProfileForm(FlaskForm):
 
 class DeleteGroupForm(FlaskForm):
     group = SelectField("Group Name", validators=[DataRequired()], default=None, coerce=int)
+
+
+class SendEmailForm(FlaskForm):
+    to_email = StringField("Send to Email", validators=[DataRequired(), Email()])
+    subject = StringField("Subject", validators=[DataRequired()])
+    message = TextAreaField("Message", validators=[DataRequired()])
