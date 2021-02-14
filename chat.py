@@ -329,6 +329,7 @@ def on_message(data):
     msg = escape_input(data["msg"])
     username = data["username"]
     room_id = data["room_id"]
+    socketio.emit("notify_chat", {"room_id": room_id})
     chat_room = ChatRoom.query.get(room_id)
     chat = Chat(message=msg, time=get_timestamp(), user=current_user, room=chat_room)
     modified_update(chat_room)
@@ -337,7 +338,6 @@ def on_message(data):
     db.session.add(chat)
     db.session.commit()
     send({"username": username, "msg": msg, "time_stamp": get_timestamp()}, room=room_id)
-    socketio.emit("notify_chat", {"room_id": room_id})
     for assoc in chat_room.members:
         if not assoc.member == current_user:
             if not assoc.member.is_online and not assoc.is_to_email:
