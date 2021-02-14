@@ -15,6 +15,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(100))
     password = db.Column(db.String(100))
     name = db.Column(db.String(100))
+    is_online = db.Column(db.Boolean, default=True)
 
     posts = relationship("BlogPost", back_populates="author")
     comments = relationship("Comment", back_populates="comment_author")
@@ -39,6 +40,7 @@ class RoomRead(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), primary_key=True)
     room_id = db.Column(db.Integer, db.ForeignKey("chat_rooms.id"), primary_key=True)
     is_read = db.Column(db.Boolean, default=False)
+    is_to_email = db.Column(db.Boolean, default=False)
     last_read = db.Column(db.String(25))
     last_modified = db.Column(db.String(50))
     room_name = db.Column(db.String(50))

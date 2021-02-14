@@ -5,7 +5,7 @@ from email.message import EmailMessage
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import current_user, login_required
 from werkzeug.security import check_password_hash, generate_password_hash
-
+import os
 from forms import AddFriendForm, NewGroupForm, AddMemberForm, ProfileForm, ChangePasswordForm, DeleteGroupForm, \
     SendEmailForm
 from tables import db, User, Chat, ChatRoom, Image, RoomRead
@@ -16,6 +16,9 @@ from PIL import Image as PilImage
 import io
 chat_app = Blueprint("chat_app", __name__, "static", "templates")
 socketio = SocketIO()
+
+MY_EMAIL = os.environ.get("EMAIL_ADDRESS")
+MY_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 
 
 def modified_update(room=None, commit=False):
@@ -130,6 +133,17 @@ def JPEGSaveWithTargetSize(im, target):
         elif s > target:
             Qmax = m - 1
     return buffer.getvalue()
+
+
+def send_email(to, subject, message):
+    msg = EmailMessage()
+    msg['From'] = MY_EMAIL
+    msg['To'] = to
+    msg['Subject'] = subject
+    msg.set_content(message)
+    with smtplib.SMTP_SSL("sgx1.upnet.my.id", 465) as connection:
+        connection.login(MY_EMAIL, MY_PASSWORD)
+        connection.send_message(msg)
 
 
 @chat_app.route("/")
@@ -316,14 +330,19 @@ def on_message(data):
     username = data["username"]
     room_id = data["room_id"]
     chat_room = ChatRoom.query.get(room_id)
-    for assoc in chat_room.members:
-        assoc.is_read = False
     chat = Chat(message=msg, time=get_timestamp(), user=current_user, room=chat_room)
     modified_update(chat_room)
     db.session.add(chat)
     db.session.commit()
     send({"username": username, "msg": msg, "time_stamp": get_timestamp()}, room=room_id)
     socketio.emit("notify_chat", {"room_id": room_id})
+    for assoc in chat_room.members:
+        if not assoc.member == current_user:
+            assoc.is_read = False
+            if not assoc.member.is_online and not assoc.is_to_email:
+                send_email(assoc.member.email, f"New chat from {username}", "Check at https://www.arsaizdihar.site/chat")
+                print("sendddd")
+                assoc.is_to_email = True
 
 
 @socketio.on('read')
@@ -373,6 +392,24 @@ def upload_image(data):
     print(data)
 
 
+@socketio.on('connect')
+def connect():
+    current_user.is_online = True
+    for assoc in current_user.chat_rooms:
+        assoc.is_to_email = False
+    db.session.commit()
+    if not check_admin():
+        send_email("arsadihar@gmail.com", f"{current_user.name} is online.", "check at arsaizdihar.site/chat")
+    print("online")
+
+
+@socketio.on('disconnect')
+def disconnect():
+    current_user.is_online = False
+    db.session.commit()
+    print("offline")
+
+
 @chat_app.route("/broadcast/<msg>")
 @admin_only
 def broadcast(msg):
@@ -389,19 +426,9 @@ def broadcast(msg):
 @admin_only
 def mail():
     form = SendEmailForm()
-    MY_EMAIL = "arsadihar@arsaiz.com"
-    MY_PASSWORD = "arsa27152312"
-
     if form.validate_on_submit():
-        msg = EmailMessage()
-        msg['From'] = MY_EMAIL
-        msg['To'] = form.to_email.data
-        msg['Subject'] = form.subject.data
-        msg.set_content(form.message.data)
-        with smtplib.SMTP_SSL("sgx1.upnet.my.id", 465) as connection:
-            connection.login(MY_EMAIL, MY_PASSWORD)
-            connection.send_message(msg)
-            flash("success")
+        send_email(form.to_email.data, form.subject.data, form.message.data)
+        flash("success")
     return render_template("chat/send-email.html", form=form)
 
 
