@@ -239,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (room){
             if (!room.style.backgroundColor){
                 room.classList.add('room-unread');
-                var span = room.children[0];
+                var span = room.children[1];
                 var read = parseInt(span.innerText);
                 if (read) {
                     read += 1;
