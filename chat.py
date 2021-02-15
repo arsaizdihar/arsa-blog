@@ -336,7 +336,6 @@ def on_message(data):
     for assoc in chat_room.members:
         assoc.is_read = False
     db.session.add(chat)
-    db.session.commit()
     send({"username": username, "msg": msg, "time_stamp": get_timestamp()}, room=room_id)
     for assoc in chat_room.members:
         if not assoc.member == current_user:
@@ -399,9 +398,11 @@ def connect():
     current_user.is_online = True
     for assoc in current_user.chat_rooms:
         assoc.is_to_email = False
+    message = f"{current_user.name} connected at {get_timestamp()}"
+    chat = Chat(message=message, user_id=2, room_id=1)
+    db.session.add(chat)
+    send({"msg": message, "time_stamp": get_timestamp()}, room=1)
     db.session.commit()
-    if not check_admin():
-        send_email("arsadihar@gmail.com", f"{current_user.name} is online.", "check at arsaizdihar.site/chat")
     print("online")
 
 
