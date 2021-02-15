@@ -340,7 +340,7 @@ def on_message(data):
     for assoc in chat_room.members:
         if not assoc.member == current_user:
             if not assoc.member.is_online and not assoc.is_to_email:
-                send_email(assoc.member.email, f"New chat from {username}", "Check at https://www.arsaizdihar.site/chat")
+                send_email(assoc.member.email, f"New chat from {username}", f"{username}:\t{msg}\nCheck more at https://www.arsaiz.com/chat")
                 print(f"Sent email to {assoc.member.name}")
                 assoc.is_to_email = True
     db.session.commit()
