@@ -24,7 +24,7 @@ from flask_script import Manager
 from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadFileForm
 from tables import db, User, BlogPost, Comment, Contact, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
-from chat import chat_app, socketio
+from chat import chat_app, socketio, send_email
 
 
 app = Flask(__name__)
@@ -257,6 +257,7 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
+        send_email(form.email.data, "Welcome to arsaiz.com!", f"Hello {form.name.data}!\nCheck my chat app at www.arsaiz.com/chat")
 
         # login the user immediately
         login_user(new_user)
