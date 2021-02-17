@@ -157,26 +157,6 @@ def chat_home():
     return render_template("/chat/chat.html", username=current_user.name, rooms=chat_rooms)
 
 
-@chat_app.route("/get-rooms")
-@login_required
-def get_rooms():
-    print("yyyyyy")
-    for assoc in current_user.chat_rooms:
-        room = assoc.chat_room
-        room_name = assoc.room_name
-        num_unread = 0
-        for chat in room.chats:
-            if chat:
-                if chat.time and assoc.last_read:
-                    if timestamp_get_datetime(chat.time) > timestamp_get_datetime(assoc.last_read):
-                        print(assoc.member)
-                        num_unread += 1
-        if num_unread == 0:
-            num_unread = ""
-        socketio.emit('show_room', {"id": room.id, "name": room_name, "is_read": assoc.is_read, "num_unread": num_unread})
-    return jsonify({"success": "finished"})
-
-
 @chat_app.route("/new-group", methods=["POST", "GET"])
 def new_group():
     form = NewGroupForm()
@@ -405,12 +385,23 @@ def connect():
     current_user.is_online = True
     for assoc in current_user.chat_rooms:
         assoc.is_to_email = False
+        room = assoc.chat_room
+        room_name = assoc.room_name
+        num_unread = 0
+        for chat in room.chats:
+            if chat:
+                if chat.time and assoc.last_read:
+                    if timestamp_get_datetime(chat.time) > timestamp_get_datetime(assoc.last_read):
+                        num_unread += 1
+        if num_unread == 0:
+            num_unread = ""
+        emit('show_room', {"id": room.id, "name": room_name, "is_read": assoc.is_read, "num_unread": num_unread})
     message = f"{current_user.name} connected at {get_timestamp()}"
     chat = Chat(message=message, user_id=2, room_id=1)
     db.session.add(chat)
     send({"msg": message, "time_stamp": get_timestamp()}, room=1)
     db.session.commit()
-    print("online")
+    print(f"{current_user.name} online")
 
 
 @socketio.on('disconnect')

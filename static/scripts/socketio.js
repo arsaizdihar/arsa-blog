@@ -5,11 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Retrieve username
     const username = document.querySelector('#get-username').innerHTML;
-    fetch('/chat/get-rooms').then(function(response) {
-        (response.json()).then(function(data) {
-            console.log(data);
-        });
-    });
+    // fetch('/chat/get-rooms').then(function(response) {
+    //     (response.json()).then(function(data) {
+    //         console.log(data);
+    //     });
+    // });
 
     // Send messages
     document.querySelector('#send_message').onclick = () => {
