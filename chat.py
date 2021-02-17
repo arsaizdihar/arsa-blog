@@ -152,6 +152,15 @@ def chat_home():
         flash("Please Log In first.")
         return redirect(url_for("login"))
     chat_rooms = []
+    if len(current_user.chat_rooms) == 0:
+        return redirect(url_for('chat_app.add_friend'))
+    return render_template("/chat/chat.html", username=current_user.name, rooms=chat_rooms)
+
+
+@chat_app.route("/get-rooms")
+@login_required
+def get_rooms():
+    print("yyyyyy")
     for assoc in current_user.chat_rooms:
         room = assoc.chat_room
         room_name = assoc.room_name
@@ -164,10 +173,8 @@ def chat_home():
                         num_unread += 1
         if num_unread == 0:
             num_unread = ""
-        chat_rooms.append({"id": room.id, "name": room_name, "is_read": assoc.is_read, "num_unread": num_unread})
-    if not list(chat_rooms):
-        return redirect(url_for('chat_app.add_friend'))
-    return render_template("/chat/chat.html", username=current_user.name, rooms=chat_rooms)
+        socketio.emit('show_room', {"id": room.id, "name": room_name, "is_read": assoc.is_read, "num_unread": num_unread})
+    return jsonify({"success": "finished"})
 
 
 @chat_app.route("/new-group", methods=["POST", "GET"])

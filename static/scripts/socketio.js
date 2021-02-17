@@ -5,6 +5,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Retrieve username
     const username = document.querySelector('#get-username').innerHTML;
+    fetch('/chat/get-rooms').then(function(response) {
+        (response.json()).then(function(data) {
+            console.log(data);
+        });
+    });
 
     // Send messages
     document.querySelector('#send_message').onclick = () => {
@@ -15,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         message.value = '';
     };
+
+
 
     // Display all incoming messages
     socket.on('message', data => {
@@ -269,6 +276,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    socket.on('show_room', data => {
+        var parent = document.querySelector('#sidebar-scroll');
+        const p = document.createElement('p');
+        const span_notification = document.createElement('span');
+        p.setAttribute("class", "select-room cursor-pointer");
+        p.setAttribute("id", "p" + data.id);
+
+        span_notification.setAttribute("id", "s" + data.id);
+        span_notification.setAttribute("class", "badge badge-pill badge-success chat-unread");
+
+        p.innerHTML += data.name + " " + span_notification.outerHTML;
+        parent.append(p);
+        p.onclick = () => {
+            pClick(p);
+        };
+    });
+
     // Select a room
     document.querySelectorAll('.select-room').forEach(p => {
         p.onclick = () => {
@@ -278,8 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function pClick(p) {
         let newRoom = p.id.substring(1);
-        console.log(newRoom);
-        span = p.children[1];
+        span = p.children[0];
         span.innerText = "";
         // Check if user already in the room
         if (newRoom === room_id) {
@@ -325,7 +348,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 for(let user of data.members) {
                     member_name.push(user.name);
                 }
-                console.log(member_name)
                 newTypeahead(member_name);
             });
         });
