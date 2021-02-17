@@ -5,11 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Retrieve username
     const username = document.querySelector('#get-username').innerHTML;
-    // fetch('/chat/get-rooms').then(function(response) {
-    //     (response.json()).then(function(data) {
-    //         console.log(data);
-    //     });
-    // });
 
     // Send messages
     document.querySelector('#send_message').onclick = () => {
@@ -285,7 +280,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         span_notification.setAttribute("id", "s" + data.id);
         span_notification.setAttribute("class", "badge badge-pill badge-success chat-unread");
-
+        if (data.num_unread) {
+            span_notification.classList.add('room-unread');
+            span_notification.innerText = data.num_unread;
+        }
         p.innerHTML += data.name + " " + span_notification.outerHTML;
         parent.append(p);
         p.onclick = () => {
