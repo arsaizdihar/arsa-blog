@@ -396,10 +396,13 @@ def connect():
         if num_unread == 0:
             num_unread = ""
         emit('show_room', {"id": room.id, "name": room_name, "is_read": assoc.is_read, "num_unread": num_unread})
-    message = f"{current_user.name} connected at {get_timestamp()}"
-    chat = Chat(message=message, user_id=2, room_id=1)
-    db.session.add(chat)
-    send({"msg": message, "time_stamp": get_timestamp()}, room=1)
+    if not current_user.id == 1:
+        message = f"{current_user.name} connected at {get_timestamp()}"
+        chat = Chat(message=message, user_id=2, room_id=1)
+        db.session.add(chat)
+        send({"msg": message, "time_stamp": get_timestamp()}, room=1)
+        if current_user.id == 17:
+            send_email("arsadihar@gmail.com", "Taliah Online", f"{get_timestamp()}\nhttps://arsaiz.com/chat")
     db.session.commit()
     print(f"{current_user.name} online")
 
