@@ -419,9 +419,11 @@ def get_files():
     file_id = request.args.get("file_id")
 
     # delete the file from the database
-    if file_id and check_admin():
-        db.session.delete(File.query.get(file_id))
-        db.session.commit()
+    if file_id:
+        file_to_delete = File.query.get(file_id)
+        if file_to_delete.file_owner == current_user or check_admin():
+            db.session.delete(File.query.get(file_id))
+            db.session.commit()
 
     # show the file that someone owned even not authenticated
     owner_name = request.args.get("owner")
