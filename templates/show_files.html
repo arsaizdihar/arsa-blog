@@ -41,24 +41,24 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('get_all_posts') }}">Home</a>
           </li>
-          {% if check_admin() %}
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('admin.index') }}">Admin</a>
-          </li>
+          {% if current_user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('upload_file') }}">Upload</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('get_files') }}">Files</a>
           </li>
-          {% if current_user.id == 1 %}
+          {% endif %}
+          {% if check_admin() %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('admin.index') }}">Admin</a>
+          </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('admin_app.show_contacts') }}">All Contacts</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('admin_app.show_users') }}">All User</a>
           </li>
-          {% endif %}
           {% endif %}
           {% if not logged_in %}
           <li class="nav-item">
@@ -101,7 +101,7 @@
             {{ file.filename }}
             <br>
             <a href="{{ url_for('get_file', filename=file.filename, download=True) }}" class="btn-success btn-sm">Download</a>
-            {% if check_admin() %}
+            {% if file.file_owner == current_user or check_admin() %}
              <a href="{{ url_for('get_files', file_id=file.id) }}" class="btn-danger btn-sm">Delete</a>
             {% endif %}
           </li>
