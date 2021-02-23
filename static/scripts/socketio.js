@@ -1,12 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Connect to websocket
-    if(window.location.protocol == "https:") {
-        var ws_scheme = "wss://";
-    } else {
-        var ws_scheme = "ws://"
-    };
-    var socket = io.connect(ws_scheme + location.host + "/chat");
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // Retrieve username
     const username = document.querySelector('#get-username').innerHTML;
