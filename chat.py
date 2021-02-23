@@ -136,14 +136,15 @@ def JPEGSaveWithTargetSize(im, target):
 
 
 def send_email(to, subject, message):
-    msg = EmailMessage()
-    msg['From'] = MY_EMAIL
-    msg['To'] = to
-    msg['Subject'] = subject
-    msg.set_content(message)
-    with smtplib.SMTP_SSL("sgx1.upnet.my.id", 465) as connection:
-        connection.login(MY_EMAIL, MY_PASSWORD)
-        connection.send_message(msg)
+    # msg = EmailMessage()
+    # msg['From'] = MY_EMAIL
+    # msg['To'] = to
+    # msg['Subject'] = subject
+    # msg.set_content(message)
+    # with smtplib.SMTP_SSL("sgx1.upnet.my.id", 465) as connection:
+    #     connection.login(MY_EMAIL, MY_PASSWORD)
+    #     connection.send_message(msg)
+    return None
 
 
 @chat_app.route("/")
