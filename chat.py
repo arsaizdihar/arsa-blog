@@ -15,7 +15,7 @@ from flask_socketio import SocketIO, join_room, leave_room, send, emit, rooms
 from PIL import Image as PilImage
 import io
 chat_app = Blueprint("chat_app", __name__, "static", "templates")
-socketio = SocketIO()
+socketio = SocketIO(logger=True, engineio_logger=True, always_connect=True)
 
 MY_EMAIL = os.environ.get("EMAIL_ADDRESS")
 MY_PASSWORD = os.environ.get("EMAIL_PASSWORD")
