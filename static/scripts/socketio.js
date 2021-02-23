@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Connect to websocket
-    var socket = io();
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
     // Retrieve username
     const username = document.querySelector('#get-username').innerHTML;
