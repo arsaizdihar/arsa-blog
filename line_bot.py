@@ -56,11 +56,10 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=f"SBMPTN {day} hari {hour} jam {minute} menit {second} detik lagi"))
     else:
-        print(event.source)
-        # if not event.type == 'group':
-        #     line_bot_api.reply_message(
-        #         event.reply_token,
-        #         TextSendMessage(text=f"Keywords: \n"
-        #                              f"snmptn\n"
-        #                              f"sbmptn")
-        #     )
+        if not event.source['type'] == 'user':
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=f"Keywords: \n"
+                                     f"snmptn\n"
+                                     f"sbmptn")
+            )
