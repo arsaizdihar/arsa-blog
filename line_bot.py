@@ -24,6 +24,10 @@ def get_delta_time(year, month, day=0, hour=0):
     return day, hour, minute, second
 
 
+def get_emoji_str(hex_code):
+    return f"{chr(int(f'{hex_code}', 16))}"
+
+
 @line_app.route("/callback", methods=['POST'])
 def callback():
     # get X-Line-Signature header value
@@ -49,18 +53,19 @@ def handle_message(event):
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"Pengumuman SNMPTN {day} hari {hour} jam {minute} menit {second} detik lagi"))
+            TextSendMessage(text=f"Pengumuman SNMPTN\n"
+                                 f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
     elif user_message.lower() == "sbmptn":
         day, hour, minute, second = get_delta_time(2021, 4, 12)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"SBMPTN {day} hari {hour} jam {minute} menit {second} detik lagi"))
+            TextSendMessage(text=f"SBMPTN\n"
+                                 f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
     else:
         if event.source.type == 'user':
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage(text=f"Keywords: \n"
                                      f"snmptn\n"
-                                     f"sbmptn\n"
-                                     f"{chr(int('0x100078', 16))}")
+                                     f"sbmptn")
             )
