@@ -1,7 +1,7 @@
 from flask import Blueprint, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, emojis
 from datetime import datetime, timedelta
 import os
 
@@ -61,5 +61,6 @@ def handle_message(event):
                 event.reply_token,
                 TextSendMessage(text=f"Keywords: \n"
                                      f"snmptn\n"
-                                     f"sbmptn")
+                                     f"sbmptn\n"
+                                     f"{chr(int('0x100078', 16))}")
             )
