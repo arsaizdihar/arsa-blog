@@ -10,7 +10,7 @@ ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
 CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
 line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
-
+KEYWORDS = ['/alipaddam', '/eligible', '/eligibleipa', '/eligibleips', '/eligiblemipa']
 
 def get_delta_time(year, month, day=0, hour=0):
     now = datetime.utcnow()
@@ -49,7 +49,7 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text
-    if event.message.text.lower() == "snmptn":
+    if user_message.lower() == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
@@ -61,7 +61,16 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=f"SBMPTN\n"
                                  f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
-    else:
+    elif user_message.lower() == "/command":
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=f"Keywords: \n"
+                                 f"SNMPTN\n"
+                                 f"SBMPTN\n"
+                                 f"/eligiblemipa\n"
+                                 f"/eligibleips")
+        )
+    elif user_message.lower() not in KEYWORDS:
         if event.source.type == 'user':
             line_bot_api.reply_message(
                 event.reply_token,
