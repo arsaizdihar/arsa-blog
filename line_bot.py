@@ -12,10 +12,10 @@ line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 
 
-def get_snm_time():
+def get_delta_time(year, month, day=0, hour=0):
     now = datetime.utcnow()
     now = now + timedelta(hours=7)
-    snm = datetime(year=2021, month=3, day=22, hour=15)
+    snm = datetime(year=year, month=month, day=day, hour=hour)
     delta = snm - now
     day = delta.days
     clock = str(delta).split(", ")[-1]
@@ -44,13 +44,21 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
+    user_message = event.message.text
     if event.message.text.lower() == "snmptn":
-        day, hour, minute, second = get_snm_time()
+        day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=f"Pengumuman SNMPTN {day} hari {hour} jam {minute} menit {second} detik lagi"))
+    elif user_message.lower() == "sbmptn":
+        day, hour, minute, second = get_delta_time(2021, 4, 12)
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=f"SBMPTN {day} hari {hour} jam {minute} menit {second} detik lagi"))
     else:
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"Keywords: snmptn")
+            TextSendMessage(text=f"Keywords: \n"
+                                 f"snmptn\n"
+                                 f"sbmptn")
         )
