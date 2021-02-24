@@ -48,4 +48,9 @@ def handle_message(event):
         day, hour, minute, second = get_snm_time()
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"Pengumuman SNMPTN {day} hari {hour} jam {second} detik lagi"))
+            TextSendMessage(text=f"Pengumuman SNMPTN {day} hari {hour} jam {minute} menit {second} detik lagi"))
+    else:
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=f"Keywords: snmptn")
+        )
