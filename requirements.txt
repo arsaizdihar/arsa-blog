@@ -4,6 +4,7 @@ gevent-websocket
 greenlet
 python-socketio
 python-engineio
+line-bot-sdk
 six
 email-validator==1.1.2
 psycopg2-binary==2.8.6

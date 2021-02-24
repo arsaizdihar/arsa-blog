@@ -25,6 +25,7 @@ from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadFileF
 from tables import db, User, BlogPost, Comment, Contact, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
 from chat import chat_app, socketio, send_email
+from line_bot import line_app
 
 
 app = Flask(__name__)
@@ -35,6 +36,8 @@ app.register_blueprint(admin_app, url_prefix="/admins")
 # chat app
 app.register_blueprint(chat_app, url_prefix="/chat")
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
+
+app.register_blueprint(line_app, url_prefix="/line")
 
 # secure all endpoints
 app.wsgi_app = ProxyFix(app.wsgi_app)
