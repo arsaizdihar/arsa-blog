@@ -12,6 +12,7 @@ line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 KEYWORDS = ['/alipaddam', '/eligible', '/eligibleipa', '/eligibleips', '/eligiblemipa']
 
+
 def get_delta_time(year, month, day=0, hour=0):
     now = datetime.utcnow()
     now = now + timedelta(hours=7)
@@ -70,11 +71,3 @@ def handle_message(event):
                                  f"/eligiblemipa\n"
                                  f"/eligibleips")
         )
-    elif user_message.lower() not in KEYWORDS:
-        if event.source.type == 'user':
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text=f"Keywords: \n"
-                                     f"snmptn\n"
-                                     f"sbmptn")
-            )
