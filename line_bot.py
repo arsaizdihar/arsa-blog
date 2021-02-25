@@ -1,7 +1,7 @@
 from flask import Blueprint, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, emojis
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, VideoSendMessage
 from datetime import datetime, timedelta
 from googleapiclient.discovery import build
 import os
@@ -71,11 +71,11 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=f"SBMPTN\n"
                                  f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
-    elif user_message.startswith('/youtube'):
-        query = user_message[7:]
+    elif user_message.startswith('/youtube ') and len(user_message) > 9:
+        query = user_message[9:]
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"{get_youtube_url(query)}")
+            VideoSendMessage(original_content_url=f"{get_youtube_url(query)}")
         )
     elif user_message == "/command":
         line_bot_api.reply_message(
