@@ -3,6 +3,7 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, emojis
 from datetime import datetime, timedelta
+from googleapiclient.discovery import build
 import os
 
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
@@ -11,6 +12,7 @@ CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
 line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 KEYWORDS = ['/alipaddam', '/eligible', '/eligibleipa', '/eligibleips', '/eligiblemipa']
+YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 
 
 def get_delta_time(year, month, day=0, hour=0):
@@ -23,6 +25,13 @@ def get_delta_time(year, month, day=0, hour=0):
     hour, minute, second = clock.split(':')
     second = second.split('.')[0]
     return day, hour, minute, second
+
+
+def get_youtube_url(query):
+    youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
+    req = youtube.search().list(q=query, part='snippet', maxResults=1, type='video')
+    res = req.execute()
+    return 'https://www.youtube.com/watch?v=' + res['items'][0]['id']['videoId']
 
 
 def get_emoji_str(hex_code):
@@ -49,20 +58,26 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    user_message = event.message.text
-    if user_message.lower() == "snmptn":
+    user_message = event.message.text.lower()
+    if user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=f"Pengumuman SNMPTN\n"
                                  f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
-    elif user_message.lower() == "sbmptn":
+    elif user_message == "sbmptn":
         day, hour, minute, second = get_delta_time(2021, 4, 12)
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=f"SBMPTN\n"
                                  f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
-    elif user_message.lower() == "/command":
+    elif user_message.startswith('/youtube'):
+        query = user_message[7:]
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=f"{get_youtube_url(query)}")
+        )
+    elif user_message == "/command":
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=f"Keywords: \n"
