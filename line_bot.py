@@ -4,6 +4,7 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, VideoSendMessage
 from datetime import datetime, timedelta
 from googleapiclient.discovery import build
+from html import unescape
 import os
 
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
@@ -31,7 +32,7 @@ def get_youtube_url(query):
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     req = youtube.search().list(q=query, part='snippet', maxResults=1, type='video')
     res = req.execute()
-    return ('https://youtu.be/' + res['items'][0]['id']['videoId']), (res['items'][0]['snippet']['title'].decode('utf-8', 'ignore'))
+    return ('https://youtu.be/' + res['items'][0]['id']['videoId']), unescape(res['items'][0]['snippet']['title'])
 
 
 def get_emoji_str(hex_code):
