@@ -31,7 +31,7 @@ def get_youtube_url(query):
     youtube = build('youtube', 'v3', developerKey=YOUTUBE_API_KEY)
     req = youtube.search().list(q=query, part='snippet', maxResults=1, type='video')
     res = req.execute()
-    return 'https://youtu.be/' + res['items'][0]['id']['videoId']
+    return ('https://youtu.be/' + res['items'][0]['id']['videoId']), (res['items'][0]['snippet']['title'])
 
 
 def get_emoji_str(hex_code):
@@ -73,9 +73,10 @@ def handle_message(event):
                                  f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
     elif user_message.startswith('/youtube ') and len(user_message) > 9:
         query = user_message[9:]
+        title, url = get_youtube_url(query)
         line_bot_api.reply_message(
             event.reply_token,
-            VideoSendMessage(original_content_url=f"{get_youtube_url(query)}")
+            TextSendMessage(text=f"{title}\n{url}")
         )
     elif user_message == "/command":
         line_bot_api.reply_message(
