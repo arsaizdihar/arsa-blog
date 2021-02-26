@@ -81,7 +81,7 @@ def handle_message(event):
             TextSendMessage(text=f"{title}\n{url}")
         )
 
-    elif user_message.startswith('/meme ') and len(user_message) > 6:
+    elif user_message == "/meme":
         response = requests.get('https://meme-api.herokuapp.com/gimme')
         url = response.json()['url']
         print(url)
