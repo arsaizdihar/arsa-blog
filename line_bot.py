@@ -1,13 +1,13 @@
 from flask import Blueprint, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, StickerSendMessage
 from datetime import datetime, timedelta
 from googleapiclient.discovery import build
 from html import unescape
 import requests
 import os
-
+import random
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
 CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
@@ -101,6 +101,30 @@ def handle_message(event):
     #             event.reply_token,
     #             TextSendMessage("gaada tolol")
     #         )
+    elif user_message.startswith("/number"):
+        if user_message == "/number":
+            message = "Keywords: \n"\
+                      "- /number (number)\n"\
+                      "- /number/random"
+        else:
+            res_type = random.choice(('math', 'trivia'))
+            req = user_message[7:]
+            if req == "/random":
+                response = requests.get('http://numbersapi.com/random/' + res_type)
+                message = response.text
+            else:
+                try:
+                    req = int(req)
+                except ValueError:
+                    message = "Invalid request"
+                else:
+                    response = requests.get('http://numbersapi.com/' + str(req) + "/" + res_type)
+                    message = response.text
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=message)
+        )
+
     elif user_message == "/command":
         line_bot_api.reply_message(
             event.reply_token,
