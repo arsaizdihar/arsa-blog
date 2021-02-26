@@ -124,7 +124,14 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=message)
         )
-
+    elif user_message == "/cat":
+        response = requests.get("https://api.thecatapi.com/v1/images/search")
+        data = response.json()
+        url = data[0]['url']
+        line_bot_api.reply_message(
+            event.reply_token,
+            ImageSendMessage(url, url)
+        )
     elif user_message == "/command":
         line_bot_api.reply_message(
             event.reply_token,
