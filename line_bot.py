@@ -91,7 +91,7 @@ def handle_message(event):
         )
         line_bot_api.reply_message(
             event.reply_token,
-            ImageSendMessage(original_content_url=url)
+            ImageSendMessage(original_content_url=url, preview_image_url=url)
         )
     elif user_message == "/command":
         line_bot_api.reply_message(
