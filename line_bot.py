@@ -88,19 +88,19 @@ def handle_message(event):
             event.reply_token,
             ImageSendMessage(original_content_url=url, preview_image_url=url)
         )
-    elif user_message.startswith("/meme ") and len(user_message) > 6:
-        response = requests.get('https://meme-api.herokuapp.com/gimme/' + user_message[6:])
-        try:
-            url = response.json()['url']
-            line_bot_api.reply_message(
-                event.reply_token,
-                ImageSendMessage(original_content_url=url, preview_image_url=url)
-            )
-        except KeyError:
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage("gaada tolol")
-            )
+    # elif user_message.startswith("/meme ") and len(user_message) > 6:
+    #     response = requests.get('https://meme-api.herokuapp.com/gimme/' + user_message[6:])
+    #     try:
+    #         url = response.json()['url']
+    #         line_bot_api.reply_message(
+    #             event.reply_token,
+    #             ImageSendMessage(original_content_url=url, preview_image_url=url)
+    #         )
+    #     except KeyError:
+    #         line_bot_api.reply_message(
+    #             event.reply_token,
+    #             TextSendMessage("gaada tolol")
+    #         )
     elif user_message == "/command":
         line_bot_api.reply_message(
             event.reply_token,
