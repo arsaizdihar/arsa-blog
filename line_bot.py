@@ -1,10 +1,11 @@
 from flask import Blueprint, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, VideoSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage
 from datetime import datetime, timedelta
 from googleapiclient.discovery import build
 from html import unescape
+import requests
 import os
 
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
@@ -78,6 +79,14 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(text=f"{title}\n{url}")
+        )
+
+    elif user_message.startswith('/meme ') and len(user_message) > 6:
+        response = requests.get('https://meme-api.herokuapp.com/gimme')
+        url = response.json()['preview'][-1]
+        line_bot_api.reply_message(
+            event.reply_token,
+            ImageSendMessage(original_content_url=url)
         )
     elif user_message == "/command":
         line_bot_api.reply_message(
