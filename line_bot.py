@@ -1,7 +1,8 @@
 from flask import Blueprint, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, StickerSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
+    ButtonsTemplate, URIAction
 from datetime import datetime, timedelta
 from googleapiclient.discovery import build
 from html import unescape
@@ -65,8 +66,20 @@ def handle_message(event):
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"Pengumuman SNMPTN\n"
-                                 f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
+            TemplateSendMessage(
+                alt_text='Buttons template',
+                template=ButtonsTemplate(
+                    thumbnail_image_url='https://statik.tempo.co/data/2019/12/01/id_893849/893849_720.jpg',
+                    title='Pengumuman SNMPTN',
+                    text=f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}",
+                    actions=[
+                        URIAction(
+                            label='Live Countdown',
+                            uri='https://snmptn.arsaizdihar.com/'
+                        )
+                    ]
+                )
+            ))
     elif user_message == "sbmptn":
         day, hour, minute, second = get_delta_time(2021, 4, 12)
         line_bot_api.reply_message(
