@@ -68,7 +68,7 @@ def handle_message(event):
             event.reply_token,
             TemplateSendMessage(
                 alt_text=f"Pengumuman SNMPTN\n"
-                         f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}",
+                         f"🕒{day} hari {hour} jam {minute} menit {second} detik lagi 😲",
                 template=ButtonsTemplate(
                     thumbnail_image_url='https://statik.tempo.co/data/2019/12/01/id_893849/893849_720.jpg',
                     title='Pengumuman SNMPTN',
