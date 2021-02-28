@@ -9,6 +9,8 @@ from html import unescape
 import requests
 import os
 import random
+
+from tables import db, TweetAccount
 from twitter_bot import tweet
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
@@ -148,11 +150,27 @@ def handle_message(event):
             ImageSendMessage(url, url)
         )
     elif user_message.startswith("/tweet ") and len(user_message) > 7:
-        tweet_url = tweet(event.message.text[7:])
+        able_tweet = True
+        now = datetime.utcnow()
+        account_last_tweet = now
+        account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+        if not account:
+            account = TweetAccount(event.source.user_id)
+            db.session.add(account)
+        if account.last_tweet:
+            account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
+            if (now - account_last_tweet).days < 1:
+                able_tweet = False
+            else:
+                account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+        else:
+            account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+        db.session.commit()
+        message = f"Tweet Posted.\nurl: {tweet(event.message.text[7:])}" if able_tweet \
+            else f"You can't tweet until {(account_last_tweet + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')}"
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage("Tweet Posted.\n"
-                            f"url: {tweet_url}")
+            TextSendMessage(message)
         )
     elif user_message == "/command":
         line_bot_api.reply_message(

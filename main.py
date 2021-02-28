@@ -30,6 +30,7 @@ from line_bot import line_app
 
 app = Flask(__name__)
 
+
 # admin app
 app.register_blueprint(admin_app, url_prefix="/admins")
 

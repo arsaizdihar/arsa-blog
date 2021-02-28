@@ -149,3 +149,9 @@ class File(db.Model):
 
     def __str__(self):
         return self.filename
+
+
+class TweetAccount(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    account_id = db.Column(db.String(50), nullable=False)
+    last_tweet = db.Column(db.String(100))
