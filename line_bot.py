@@ -9,6 +9,7 @@ from html import unescape
 import requests
 import os
 import random
+from twitter_bot import tweet
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
 CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
@@ -145,6 +146,13 @@ def handle_message(event):
         line_bot_api.reply_message(
             event.reply_token,
             ImageSendMessage(url, url)
+        )
+    elif user_message.startswith("/tweet ") and len(user_message) > 7:
+        tweet_url = tweet(event.message.text[7:])
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage("Tweet Posted.\n"
+                            f"url: {tweet_url}")
         )
     elif user_message == "/command":
         line_bot_api.reply_message(
