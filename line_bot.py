@@ -164,30 +164,35 @@ def handle_message(event):
             from_text, to_text, message_text = None, None, None
             command_valid = False
         if command_valid:
+            tweet_msg = f"from: {from_text}\n"\
+                        f"to: {to_text}\n"\
+                        f"{message_text}"
             able_tweet = True
-            now = datetime.utcnow()
-            account_last_tweet = now
-            account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
-            if not account:
-                account = TweetAccount(account_id=event.source.user_id)
-                db.session.add(account)
-            if account.last_tweet:
-                account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
-                if (now - account_last_tweet).days < 1 and not account.id == 1:
-                    able_tweet = False
+            tweet_valid = len(tweet_msg) <= 280
+            if tweet_valid:
+                now = datetime.utcnow()
+                account_last_tweet = now
+                account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+                if not account:
+                    account = TweetAccount(account_id=event.source.user_id)
+                    db.session.add(account)
+                if account.last_tweet:
+                    account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
+                    if (now - account_last_tweet).days < 1 and not account.id == 1:
+                        able_tweet = False
+                    else:
+                        account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
                 else:
                     account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+                db.session.commit()
+                if able_tweet:
+                    url = tweet(tweet_msg)
+                    message = f"Tweet Posted.\nurl: {url}"
+                else:
+                    message = f"You can't tweet until " \
+                              f"{(account_last_tweet + timedelta(days=1, hours=7)).strftime('%Y-%m-%d %H:%M:%S')}"
             else:
-                account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
-            db.session.commit()
-            if able_tweet:
-                url = tweet(f"from: {from_text}\n"
-                            f"to: {to_text}\n"
-                            f"{message_text}")
-                message = f"Tweet Posted.\nurl: {url}"
-            else:
-                message = f"You can't tweet until " \
-                          f"{(account_last_tweet + timedelta(days=1, hours=7)).strftime('%Y-%m-%d %H:%M:%S')}"
+                message = "Text too long."
         else:
             message = "Wrong format. Should be:\n" \
                       "/tweet28fess from: to: text: "
