@@ -179,7 +179,8 @@ def handle_message(event):
                 if account.last_tweet:
                     account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
                     if (now - account_last_tweet).days < 1 and not account.id == 1:
-                        able_tweet = False
+                        # able_tweet = False
+                        pass
                     else:
                         account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
                 else:
