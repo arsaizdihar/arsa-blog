@@ -12,5 +12,9 @@ api = tweepy.API(auth)
 
 
 def tweet(msg):
-    post = api.update_status(msg)
-    return f"https://twitter.com/{post.user.screen_name}/status/{post.id}"
+    try:
+        post = api.update_status(msg)
+        return f"https://twitter.com/{post.user.screen_name}/status/{post.id}"
+    except tweepy.error.TweepError:
+        return False
+

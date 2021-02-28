@@ -188,7 +188,10 @@ def handle_message(event):
                 db.session.commit()
                 if able_tweet:
                     url = tweet(tweet_msg)
-                    message = f"Tweet Posted.\nurl: {url}"
+                    if url:
+                        message = f"Tweet Posted.\nurl: {url}"
+                    else:
+                        message = f"Tweet failed. Please try again."
                 else:
                     message = f"You can't tweet until " \
                               f"{(account_last_tweet + timedelta(days=1, hours=7)).strftime('%Y-%m-%d %H:%M:%S')}"
