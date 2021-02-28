@@ -149,25 +149,48 @@ def handle_message(event):
             event.reply_token,
             ImageSendMessage(url, url)
         )
-    elif user_message.startswith("/tweet ") and len(user_message) > 7:
-        able_tweet = True
-        now = datetime.utcnow()
-        account_last_tweet = now
-        account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
-        if not account:
-            account = TweetAccount(account_id=event.source.user_id)
-            db.session.add(account)
-        if account.last_tweet:
-            account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
-            if (now - account_last_tweet).days < 1:
-                able_tweet = False
+    elif user_message.startswith("/tweet28fess ") and len(user_message) > len("/tweet28fess "):
+        command_valid = True
+        from_cmd, to_cmd, text_cmd = " from: ", " to: ", " text: "
+        real_user_message = event.message.text
+        if from_cmd in user_message and to_cmd in user_message and text_cmd in user_message:
+            from_index = user_message.index(from_cmd)
+            to_index = user_message.index(to_cmd)
+            text_index = user_message.index(text_cmd)
+            from_text = real_user_message[from_index+len(from_cmd):to_index]
+            to_text = real_user_message[to_index+len(to_cmd):text_index]
+            message_text = real_user_message[text_index+len(text_cmd):]
+        else:
+            from_text, to_text, message_text = None, None, None
+            command_valid = False
+        if command_valid:
+            able_tweet = True
+            now = datetime.utcnow()
+            account_last_tweet = now
+            account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+            if not account:
+                account = TweetAccount(account_id=event.source.user_id)
+                db.session.add(account)
+            if account.last_tweet:
+                account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
+                if (now - account_last_tweet).days < 1 and not account.id == 1:
+                    able_tweet = False
+                else:
+                    account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
             else:
                 account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+            db.session.commit()
+            if able_tweet:
+                url = tweet(f"from: {from_text}\n"
+                            f"to: {to_text}\n"
+                            f"{message_text}")
+                message = f"Tweet Posted.\nurl: {url}"
+            else:
+                message = f"You can't tweet until " \
+                          f"{(account_last_tweet + timedelta(days=1, hours=7)).strftime('%Y-%m-%d %H:%M:%S')}"
         else:
-            account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
-        db.session.commit()
-        message = f"Tweet Posted.\nurl: {tweet(event.message.text[7:])}" if able_tweet \
-            else f"You can't tweet until {(account_last_tweet + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')}"
+            message = "Wrong format. Should be:\n" \
+                      "/tweet28fess from: to: text: "
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage(message)
@@ -179,5 +202,6 @@ def handle_message(event):
                                  f"SNMPTN\n"
                                  f"SBMPTN\n"
                                  f"/eligiblemipa\n"
-                                 f"/eligibleips")
+                                 f"/eligibleips\n"
+                                 f"/tweet28fess from: to: text: ")
         )
