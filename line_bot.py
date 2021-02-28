@@ -155,7 +155,7 @@ def handle_message(event):
         account_last_tweet = now
         account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
         if not account:
-            account = TweetAccount(event.source.user_id)
+            account = TweetAccount(account_id=event.source.user_id)
             db.session.add(account)
         if account.last_tweet:
             account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
