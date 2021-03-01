@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort, url_for
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
-    ButtonsTemplate, URIAction
+    ButtonsTemplate, URIAction, ImageMessage
 from datetime import datetime, timedelta
 from googleapiclient.discovery import build
 from html import unescape
@@ -65,31 +65,32 @@ def callback():
     return 'OK'
 
 
+@handler.add(MessageEvent, message=ImageMessage)
+def handle_image_message(event):
+    print(event.source.user_id)
+    print(event.message)
+    user = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    if user:
+        if user.id == 1:
+            try:
+                pic = line_bot_api.get_message_content(event.message.id).content
+                filename = generate_filename(Image, secure_filename(pic.filename))
+                mimetype = pic.mimetype
+                img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
+                db.session.add(img)
+                db.session.commit()
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(text=f"{url_for('get_img', filename=img.filename)}")
+                )
+            except Exception as e:
+                print(e)
+
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text.lower()
-    user = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
-    is_me = False
-    if user:
-        if user.id == 1:
-            is_me = True
-    print(event.source.user_id)
-    print(event.message)
-    if is_me and event.message.type == "image":
-        try:
-            pic = line_bot_api.get_message_content(event.message.id).content
-            filename = generate_filename(Image, secure_filename(pic.filename))
-            mimetype = pic.mimetype
-            img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
-            db.session.add(img)
-            db.session.commit()
-            line_bot_api.reply_message(
-                event.reply_token,
-                TextSendMessage(text=f"{url_for('get_img', filename=img.filename)}")
-            )
-        except Exception as e:
-            print(e)
-    elif user_message == "snmptn":
+    if user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
