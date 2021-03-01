@@ -11,9 +11,15 @@ auth.set_access_token(ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 api = tweepy.API(auth)
 
 
-def tweet(msg):
+def tweet(msg, file=None):
+    media = None
     try:
-        post = api.update_status(msg)
+        if file:
+            media = api.media_upload(filename="line_img", file=file)
+        if media:
+            post = api.update_status(msg, media_ids=[media.media_id])
+        else:
+            post = api.update_status(msg)
         return f"https://twitter.com/{post.user.screen_name}/status/{post.id}"
     except tweepy.error.TweepError:
         return False

@@ -9,7 +9,7 @@ from html import unescape
 import requests
 import os
 import random
-
+import io
 from werkzeug.utils import secure_filename
 
 from admin import generate_filename
@@ -74,13 +74,12 @@ def handle_image_message(event):
         if user.id == 1:
             try:
                 pic = line_bot_api.get_message_content(event.message.id)
-                filename = generate_filename(Image, secure_filename("line_msg"))
-                img = Image(filename=filename, img=pic.content, mimetype=pic.content_type)
-                db.session.add(img)
-                db.session.commit()
+                file = io.BytesIO(pic.content)
+                url = tweet("tes img", file)
+                file.close()
                 line_bot_api.reply_message(
                     event.reply_token,
-                    TextSendMessage(text=f"{url_for('get_img', filename=img.filename)}")
+                    TextSendMessage(text=f"{url}")
                 )
             except Exception as e:
                 print(e)
