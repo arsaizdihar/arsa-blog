@@ -156,5 +156,6 @@ class TweetAccount(db.Model):
     account_id = db.Column(db.String(50), nullable=False)
     last_tweet = db.Column(db.String(100))
     img_soon = db.Column(db.Boolean, default=False)
-    last_img_req = db.Column(db.String(100))
+    last_tweet_req = db.Column(db.String(100))
     next_tweet_msg = db.Column(db.Text)
+    tweet_phase = db.Column(db.String(50))

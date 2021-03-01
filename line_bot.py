@@ -22,7 +22,7 @@ line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 KEYWORDS = ['/alipaddam', '/eligible', '/eligibleipa', '/eligibleips', '/eligiblemipa']
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
-
+TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
 
 def get_delta_time(year, month, day=0, hour=0):
     now = datetime.utcnow()
@@ -34,6 +34,12 @@ def get_delta_time(year, month, day=0, hour=0):
     hour, minute, second = clock.split(':')
     second = second.split('.')[0]
     return day, hour, minute, second
+
+
+def check_timeout(then, sec):
+    then_datetime = datetime.strptime(then, TIME_FORMAT)
+    now = datetime.utcnow()
+    return (now-then_datetime).total_seconds() <= sec
 
 
 def get_youtube_url(query):
@@ -71,9 +77,8 @@ def handle_image_message(event):
     if account:
         print(account.last_tweet, account.last_img_req, account.next_tweet_msg)
         if account.img_soon:
-            last_img_req = datetime.strptime(account.last_img_req, "%Y-%m-%d %H:%M:%S.%f")
-            now = datetime.utcnow()
-            if (now - last_img_req).total_seconds() <= 300:
+            last_img_req = datetime.strptime(account.last_img_req, TIME_FORMAT)
+            if check_timeout(last_img_req, 300):
                 try:
                     pic = line_bot_api.get_message_content(event.message.id)
                     file = io.BytesIO(pic.content)
@@ -89,6 +94,9 @@ def handle_image_message(event):
                     )
                 except Exception as e:
                     print(e)
+            account.tweet_phase = ""
+            account.last_tweet = datetime.utcnow().strftime(TIME_FORMAT)
+            account.last_tweet_req = ""
             account.img_soon = False
             account.next_tweet_msg = ""
             db.session.commit()
@@ -97,6 +105,53 @@ def handle_image_message(event):
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text.lower()
+    account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    if account:
+        phase = account.tweet_phase
+        if phase and check_timeout(account.last_tweet_req, 300):
+            now = datetime.utcnow().strftime(TIME_FORMAT)
+            account.last_tweet_req = now
+            if phase == "from":
+                account.tweet_phase = "to"
+                account.next_tweet_msg += event.message.text + "\nto: "
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage("to: ")
+                )
+            if phase == "to":
+                account.tweet_phase = "text"
+                account.next_tweet_msg += event.message.text + "\n"
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage("message: ")
+                )
+            if phase == "text":
+                msg = account.next_tweet_msg + event.message.text
+                if len(account.next_tweet_msg + event.message.text) <= 280:
+                    if account.img_soon:
+                        account.next_tweet_msg = msg
+                        account.tweet_phase = "img"
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.")
+                        )
+                    else:
+                        account.tweet_phase = ""
+                        account.next_tweet_msg = ""
+                        account.last_tweet = now
+                        account.last_tweet_req = ""
+                        url = tweet(msg)
+                        if url:
+                            message = f"Tweet Posted.\nurl: {url}"
+                        else:
+                            message = f"Tweet failed. Please try again."
+                        line_bot_api.reply_message(
+                            event.reply_token,
+                            TextSendMessage(message)
+                        )
+                else:
+                    pass
+            db.session.commit()
     if user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
@@ -137,19 +192,6 @@ def handle_message(event):
             event.reply_token,
             ImageSendMessage(original_content_url=url, preview_image_url=url)
         )
-    # elif user_message.startswith("/meme ") and len(user_message) > 6:
-    #     response = requests.get('https://meme-api.herokuapp.com/gimme/' + user_message[6:])
-    #     try:
-    #         url = response.json()['url']
-    #         line_bot_api.reply_message(
-    #             event.reply_token,
-    #             ImageSendMessage(original_content_url=url, preview_image_url=url)
-    #         )
-    #     except KeyError:
-    #         line_bot_api.reply_message(
-    #             event.reply_token,
-    #             TextSendMessage("gaada tolol")
-    #         )
     elif user_message.startswith("/number"):
         if user_message == "/number":
             message = "Keywords: \n"\
@@ -181,6 +223,18 @@ def handle_message(event):
             event.reply_token,
             ImageSendMessage(url, url)
         )
+    elif user_message == "/tweet28fess":
+        if not account:
+            account = TweetAccount(account_id=event.source.user_id)
+            db.session.add(account)
+        account.tweet_phase = "from"
+        account.next_tweet_msg = "from: "
+        account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
+        db.session.commit()
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage("from: ")
+        )
     elif user_message.startswith("/tweet28fess") and len(user_message) > len("/tweet28fess "):
         if user_message.startswith("/tweet28fess "):
             with_img = False
@@ -210,24 +264,23 @@ def handle_message(event):
             if tweet_valid:
                 now = datetime.utcnow()
                 account_last_tweet = now
-                account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
                 if not account:
                     account = TweetAccount(account_id=event.source.user_id)
                     db.session.add(account)
                 if account.last_tweet:
-                    account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
+                    account_last_tweet = datetime.strptime(account.last_tweet, TIME_FORMAT)
                     if (now - account_last_tweet).days < 1 and not account.id == 1:
                         # able_tweet = False
-                        account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+                        account.last_tweet = now.strftime(TIME_FORMAT)
                     else:
-                        account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+                        account.last_tweet = now.strftime(TIME_FORMAT)
                 else:
-                    account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+                    account.last_tweet = now.strftime(TIME_FORMAT)
                 if able_tweet:
                     if with_img:
                         account.img_soon = True
                         account.next_tweet_msg = tweet_msg
-                        account.last_img_req = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+                        account.last_img_req = now.strftime(TIME_FORMAT)
                         message = "Kirim foto yang ingin di post dalam 5 menit."
                     else:
                         url = tweet(tweet_msg)
