@@ -1,4 +1,4 @@
-from flask import Blueprint, request, abort
+from flask import Blueprint, request, abort, url_for
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
@@ -10,7 +10,10 @@ import requests
 import os
 import random
 
-from tables import db, TweetAccount
+from werkzeug.utils import secure_filename
+
+from admin import generate_filename
+from tables import db, TweetAccount, Image
 from twitter_bot import tweet
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
@@ -65,7 +68,19 @@ def callback():
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text.lower()
-    if user_message == "snmptn":
+    user = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    if user.id == 1 and event.message.type == "image":
+        pic = line_bot_api.get_message_content(event.message.id).content
+        filename = generate_filename(Image, secure_filename(pic.filename))
+        mimetype = pic.mimetype
+        img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
+        db.session.add(img)
+        db.session.commit()
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=f"{url_for('get_img', filename=img.filename)}")
+        )
+    elif user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
