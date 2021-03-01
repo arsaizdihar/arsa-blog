@@ -25,7 +25,7 @@ from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadFileF
 from tables import db, User, BlogPost, Comment, Contact, Image, File
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
 from chat import chat_app, socketio, send_email
-from line_bot import line_app
+# from line_bot import line_app
 
 
 app = Flask(__name__)
@@ -38,7 +38,7 @@ app.register_blueprint(admin_app, url_prefix="/admins")
 app.register_blueprint(chat_app, url_prefix="/chat")
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', "8BYkEfBA6O6donzWlSihBXox7C0sKR6b")
 
-app.register_blueprint(line_app, url_prefix="/line")
+# app.register_blueprint(line_app, url_prefix="/line")
 
 # secure all endpoints
 app.wsgi_app = ProxyFix(app.wsgi_app)
@@ -49,7 +49,8 @@ Bootstrap(app)
 socketio.init_app(app)
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://yqqkucrlrwodsg:42462cba995f477569fffd759a8275795380a5fcc2c76c73b10c7e83a9ffbc76@ec2-52-22-135-159.compute-1.amazonaws.com:5432/dddtkamj2oji4a"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True

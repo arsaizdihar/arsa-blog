@@ -106,52 +106,6 @@ def handle_image_message(event):
 def handle_message(event):
     user_message = event.message.text.lower()
     account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
-    if account:
-        phase = account.tweet_phase
-        if phase and check_timeout(account.last_tweet_req, 300):
-            now = datetime.utcnow().strftime(TIME_FORMAT)
-            account.last_tweet_req = now
-            if phase == "from":
-                account.tweet_phase = "to"
-                account.next_tweet_msg += event.message.text + "\nto: "
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    TextSendMessage("to: ")
-                )
-            if phase == "to":
-                account.tweet_phase = "text"
-                account.next_tweet_msg += event.message.text + "\n"
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    TextSendMessage("message: ")
-                )
-            if phase == "text":
-                msg = account.next_tweet_msg + event.message.text
-                if len(account.next_tweet_msg + event.message.text) <= 280:
-                    if account.img_soon:
-                        account.next_tweet_msg = msg
-                        account.tweet_phase = "img"
-                        line_bot_api.reply_message(
-                            event.reply_token,
-                            TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.")
-                        )
-                    else:
-                        account.tweet_phase = ""
-                        account.next_tweet_msg = ""
-                        account.last_tweet = now
-                        account.last_tweet_req = ""
-                        url = tweet(msg)
-                        if url:
-                            message = f"Tweet Posted.\nurl: {url}"
-                        else:
-                            message = f"Tweet failed. Please try again."
-                        line_bot_api.reply_message(
-                            event.reply_token,
-                            TextSendMessage(message)
-                        )
-                else:
-                    pass
-            db.session.commit()
     if user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
@@ -223,91 +177,83 @@ def handle_message(event):
             event.reply_token,
             ImageSendMessage(url, url)
         )
-    elif user_message == "/tweet28fess":
+    elif user_message == "/tweet28fess" or user_message == "/tweet28fessimg":
         if not account:
             account = TweetAccount(account_id=event.source.user_id)
             db.session.add(account)
+        if user_message == "/tweet28fessimg":
+            account.img_soon = True
         account.tweet_phase = "from"
-        account.next_tweet_msg = "from: "
+        account.next_tweet_msg = "from: \n/canceltweet to cancel"
         account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
         db.session.commit()
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage("from: ")
         )
-    elif user_message.startswith("/tweet28fess") and len(user_message) > len("/tweet28fess "):
-        if user_message.startswith("/tweet28fess "):
-            with_img = False
-        elif user_message.startswith("/tweet28fessimg ") and len(user_message) > len("/tweet28fessimg "):
-            with_img = True
-        else:
-            return
-        command_valid = True
-        from_cmd, to_cmd, text_cmd = " from: ", " to: ", " text: "
-        real_user_message = event.message.text
-        if from_cmd in user_message and to_cmd in user_message and text_cmd in user_message:
-            from_index = user_message.index(from_cmd)
-            to_index = user_message.index(to_cmd)
-            text_index = user_message.index(text_cmd)
-            from_text = real_user_message[from_index+len(from_cmd):to_index]
-            to_text = real_user_message[to_index+len(to_cmd):text_index]
-            message_text = real_user_message[text_index+len(text_cmd):]
-        else:
-            from_text, to_text, message_text = None, None, None
-            command_valid = False
-        if command_valid:
-            tweet_msg = f"from: {from_text}\n"\
-                        f"to: {to_text}\n"\
-                        f"{message_text}"
-            able_tweet = True
-            tweet_valid = len(tweet_msg) <= 280
-            if tweet_valid:
-                now = datetime.utcnow()
-                account_last_tweet = now
-                if not account:
-                    account = TweetAccount(account_id=event.source.user_id)
-                    db.session.add(account)
-                if account.last_tweet:
-                    account_last_tweet = datetime.strptime(account.last_tweet, TIME_FORMAT)
-                    if (now - account_last_tweet).days < 1 and not account.id == 1:
-                        # able_tweet = False
-                        account.last_tweet = now.strftime(TIME_FORMAT)
-                    else:
-                        account.last_tweet = now.strftime(TIME_FORMAT)
-                else:
-                    account.last_tweet = now.strftime(TIME_FORMAT)
-                if able_tweet:
-                    if with_img:
-                        account.img_soon = True
-                        account.next_tweet_msg = tweet_msg
-                        account.last_img_req = now.strftime(TIME_FORMAT)
-                        message = "Kirim foto yang ingin di post dalam 5 menit."
-                    else:
-                        url = tweet(tweet_msg)
-                        if url:
-                            message = f"Tweet Posted.\nurl: {url}"
-                        else:
-                            message = f"Tweet failed. Please try again."
-                else:
-                    message = f"You can't tweet until " \
-                              f"{(account_last_tweet + timedelta(days=1, hours=7)).strftime('%Y-%m-%d %H:%M:%S')}"
-                db.session.commit()
-            else:
-                message = "Text too long."
-        else:
-            message = "Wrong format. Should be:\n" \
-                      "/tweet28fess from: to: text: "
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(message)
-        )
     elif user_message == "/command":
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"Keywords: \n"
-                                 f"SNMPTN\n"
-                                 f"SBMPTN\n"
-                                 f"/eligiblemipa\n"
-                                 f"/eligibleips\n"
-                                 f"/tweet28fess from: to: text: ")
+            TextSendMessage(text="Keywords: \n"
+                                 "SNMPTN\n"
+                                 "SBMPTN\n"
+                                 "/tweet28fess\n"
+                                 "/tweet28fessimg")
         )
+    else:
+        if account:
+            phase = account.tweet_phase
+            if phase:
+                if user_message == "/canceltweet":
+                    account.tweet_phase = ""
+                    account.next_tweet_msg = ""
+                    account.last_tweet_req = ""
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage("Tweet Cancelled")
+                    )
+                else:
+                    if check_timeout(account.last_tweet_req, 300):
+                        now = datetime.utcnow().strftime(TIME_FORMAT)
+                        account.last_tweet_req = now
+                        if phase == "from":
+                            account.tweet_phase = "to"
+                            account.next_tweet_msg += event.message.text + "\nto: "
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage("to: \n/canceltweet to cancel")
+                            )
+                        if phase == "to":
+                            account.tweet_phase = "text"
+                            account.next_tweet_msg += event.message.text + "\n"
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage("message: \n/canceltweet to cancel")
+                            )
+                        if phase == "text":
+                            msg = account.next_tweet_msg + event.message.text
+                            if len(account.next_tweet_msg + event.message.text) <= 280:
+                                if account.img_soon:
+                                    account.next_tweet_msg = msg
+                                    account.tweet_phase = "img"
+                                    line_bot_api.reply_message(
+                                        event.reply_token,
+                                        TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.")
+                                    )
+                                else:
+                                    account.tweet_phase = ""
+                                    account.next_tweet_msg = ""
+                                    account.last_tweet = now
+                                    account.last_tweet_req = ""
+                                    url = tweet(msg)
+                                    if url:
+                                        message = f"Tweet Posted.\nurl: {url}"
+                                    else:
+                                        message = f"Tweet failed. Please try again."
+                                    line_bot_api.reply_message(
+                                        event.reply_token,
+                                        TextSendMessage(message)
+                                    )
+                            else:
+                                pass
+                db.session.commit()
