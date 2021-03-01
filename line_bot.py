@@ -73,10 +73,9 @@ def handle_image_message(event):
     if user:
         if user.id == 1:
             try:
-                pic = line_bot_api.get_message_content(event.message.id).content
-                filename = generate_filename(Image, secure_filename(pic.filename))
-                mimetype = pic.mimetype
-                img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
+                pic = line_bot_api.get_message_content(event.message.id)
+                filename = generate_filename(Image, secure_filename("line_msg"))
+                img = Image(filename=filename, img=pic.content, mimetype=pic.content_type)
                 db.session.add(img)
                 db.session.commit()
                 line_bot_api.reply_message(
