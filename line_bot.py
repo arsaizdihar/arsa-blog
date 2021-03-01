@@ -69,6 +69,7 @@ def callback():
 def handle_image_message(event):
     account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
     if account:
+        print(account.last_tweet, account.last_img_req, account.next_tweet_msg)
         if account.img_soon:
             last_img_req = datetime.strptime(account.last_img_req, "%Y-%m-%d %H:%M:%S.%f")
             now = datetime.utcnow()
@@ -217,7 +218,7 @@ def handle_message(event):
                     account_last_tweet = datetime.strptime(account.last_tweet, "%Y-%m-%d %H:%M:%S.%f")
                     if (now - account_last_tweet).days < 1 and not account.id == 1:
                         # able_tweet = False
-                        pass
+                        account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
                     else:
                         account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
                 else:
@@ -226,7 +227,7 @@ def handle_message(event):
                     if with_img:
                         account.img_soon = True
                         account.next_tweet_msg = tweet_msg
-                        account.last_img_req = account.last_tweet
+                        account.last_img_req = now.strftime("%Y-%m-%d %H:%M:%S.%f")
                         message = "Kirim foto yang ingin di post dalam 5 menit."
                     else:
                         url = tweet(tweet_msg)
