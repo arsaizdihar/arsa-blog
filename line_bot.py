@@ -67,22 +67,30 @@ def callback():
 
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_image_message(event):
-    print(event.source.user_id)
-    print(event.message)
-    user = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
-    if user:
-        if user.id == 1:
-            try:
-                pic = line_bot_api.get_message_content(event.message.id)
-                file = io.BytesIO(pic.content)
-                url = tweet("tes img", file)
-                file.close()
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    TextSendMessage(text=f"{url}")
-                )
-            except Exception as e:
-                print(e)
+    account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    if account:
+        if account.img_soon:
+            last_img_req = datetime.strptime(account.last_img_req, "%Y-%m-%d %H:%M:%S.%f")
+            now = datetime.utcnow()
+            if (now - last_img_req).total_seconds() <= 300:
+                try:
+                    pic = line_bot_api.get_message_content(event.message.id)
+                    file = io.BytesIO(pic.content)
+                    url = tweet(account.next_tweet_msg, file)
+                    file.close()
+                    if url:
+                        message = f"Tweet Posted.\nurl: {url}"
+                    else:
+                        message = f"Tweet failed. Please try again."
+                    line_bot_api.reply_message(
+                        event.reply_token,
+                        TextSendMessage(text=message)
+                    )
+                except Exception as e:
+                    print(e)
+            account.img_soon = False
+            account.next_tweet_msg = ""
+            db.session.commit()
 
 
 @handler.add(MessageEvent, message=TextMessage)
@@ -172,7 +180,13 @@ def handle_message(event):
             event.reply_token,
             ImageSendMessage(url, url)
         )
-    elif user_message.startswith("/tweet28fess ") and len(user_message) > len("/tweet28fess "):
+    elif user_message.startswith("/tweet28fess") and len(user_message) > len("/tweet28fess "):
+        if user_message.startswith("/tweet28fess "):
+            with_img = False
+        elif user_message.startswith("/tweet28fessimg ") and len(user_message) > len("/tweet28fessimg "):
+            with_img = True
+        else:
+            return
         command_valid = True
         from_cmd, to_cmd, text_cmd = " from: ", " to: ", " text: "
         real_user_message = event.message.text
@@ -208,16 +222,22 @@ def handle_message(event):
                         account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
                 else:
                     account.last_tweet = now.strftime("%Y-%m-%d %H:%M:%S.%f")
-                db.session.commit()
                 if able_tweet:
-                    url = tweet(tweet_msg)
-                    if url:
-                        message = f"Tweet Posted.\nurl: {url}"
+                    if with_img:
+                        account.img_soon = True
+                        account.next_tweet_msg = tweet_msg
+                        account.last_img_req = account.last_tweet
+                        message = "Kirim foto yang ingin di post dalam 5 menit."
                     else:
-                        message = f"Tweet failed. Please try again."
+                        url = tweet(tweet_msg)
+                        if url:
+                            message = f"Tweet Posted.\nurl: {url}"
+                        else:
+                            message = f"Tweet failed. Please try again."
                 else:
                     message = f"You can't tweet until " \
                               f"{(account_last_tweet + timedelta(days=1, hours=7)).strftime('%Y-%m-%d %H:%M:%S')}"
+                db.session.commit()
             else:
                 message = "Text too long."
         else:
