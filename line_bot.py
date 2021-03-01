@@ -184,12 +184,12 @@ def handle_message(event):
         if user_message == "/tweet28fessimg":
             account.img_soon = True
         account.tweet_phase = "from"
-        account.next_tweet_msg = "from: \n/canceltweet to cancel"
+        account.next_tweet_msg = "from: "
         account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
         db.session.commit()
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage("from: ")
+            TextSendMessage("from: \n/canceltweet to cancel")
         )
     elif user_message == "/command":
         line_bot_api.reply_message(
