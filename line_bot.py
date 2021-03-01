@@ -181,6 +181,8 @@ def handle_message(event):
             db.session.add(account)
         if user_message == "/tweet28fessimg":
             account.img_soon = True
+        else:
+            account.img_soon = False
         account.tweet_phase = "from"
         account.next_tweet_msg = "from: "
         account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
@@ -206,6 +208,7 @@ def handle_message(event):
                     account.tweet_phase = ""
                     account.next_tweet_msg = ""
                     account.last_tweet_req = ""
+                    account.img_soon = False
                     line_bot_api.reply_message(
                         event.reply_token,
                         TextSendMessage("Tweet Cancelled")
