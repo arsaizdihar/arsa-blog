@@ -69,9 +69,13 @@ def callback():
 def handle_message(event):
     user_message = event.message.text.lower()
     user = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    is_me = False
+    if user:
+        if user.id == 1:
+            is_me = True
     print(event.source.user_id)
     print(event.message)
-    if user.id == 1 and event.message.type == "image":
+    if is_me and event.message.type == "image":
         try:
             pic = line_bot_api.get_message_content(event.message.id).content
             filename = generate_filename(Image, secure_filename(pic.filename))
