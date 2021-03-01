@@ -75,10 +75,8 @@ def callback():
 def handle_image_message(event):
     account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
     if account:
-        print(account.last_tweet, account.last_img_req, account.next_tweet_msg)
         if account.img_soon:
-            last_img_req = datetime.strptime(account.last_img_req, TIME_FORMAT)
-            if check_timeout(last_img_req, 300):
+            if check_timeout(account.last_tweet_req, 300):
                 try:
                     pic = line_bot_api.get_message_content(event.message.id)
                     file = io.BytesIO(pic.content)
