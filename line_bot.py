@@ -69,6 +69,7 @@ def callback():
 def handle_message(event):
     user_message = event.message.text.lower()
     user = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    print(event.source.user_id)
     print(event.message)
     if user.id == 1 and event.message.type == "image":
         try:
