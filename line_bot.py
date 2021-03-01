@@ -69,17 +69,21 @@ def callback():
 def handle_message(event):
     user_message = event.message.text.lower()
     user = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    print(event.message)
     if user.id == 1 and event.message.type == "image":
-        pic = line_bot_api.get_message_content(event.message.id).content
-        filename = generate_filename(Image, secure_filename(pic.filename))
-        mimetype = pic.mimetype
-        img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
-        db.session.add(img)
-        db.session.commit()
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(text=f"{url_for('get_img', filename=img.filename)}")
-        )
+        try:
+            pic = line_bot_api.get_message_content(event.message.id).content
+            filename = generate_filename(Image, secure_filename(pic.filename))
+            mimetype = pic.mimetype
+            img = Image(filename=filename, img=pic.read(), mimetype=mimetype)
+            db.session.add(img)
+            db.session.commit()
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage(text=f"{url_for('get_img', filename=img.filename)}")
+            )
+        except Exception as e:
+            print(e)
     elif user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
