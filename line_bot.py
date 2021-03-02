@@ -178,7 +178,10 @@ def handle_message(event):
         db.session.commit()
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage("from: \n/canceltweet to cancel")
+            TextSendMessage("from: \n/canceltweet to cancel",
+                            quick_reply=QuickReply(items=[
+                                QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
+                            ]))
         )
     elif user_message == "/command":
         line_bot_api.reply_message(
