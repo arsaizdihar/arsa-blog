@@ -221,15 +221,20 @@ def handle_message(event):
             if group.phase == "tumbal" and group.data:
                 member_ids = group.member_ids.split("\n")
                 member = line_bot_api.get_group_member_profile(event.source.group_id, random.choice(member_ids))
-                line_bot_api.reply_message(
-                    event.reply_token,
-                    messages=[
+                if member.picture_url:
+                    messages = [
                         TextSendMessage("Yang jadi tumbal: " + member.display_name),
                         ImageSendMessage(member.picture_url, member.picture_url)
                     ]
+                else:
+                    messages = TextSendMessage("Yang jadi tumbal: " + member.display_name),
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    messages=messages
                 )
                 group.data = ""
                 group.phase = ""
+                group.member_ids = ""
                 db.session.commit()
     else:
         if account:
