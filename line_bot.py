@@ -10,10 +10,7 @@ import requests
 import os
 import random
 import io
-from werkzeug.utils import secure_filename
-
-from admin import generate_filename
-from tables import db, TweetAccount, Image
+from tables import db, TweetAccount
 from twitter_bot import tweet
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
@@ -80,7 +77,8 @@ def handle_image_message(event):
                 account.tweet_phase = "confirm " + event.message.id
                 line_bot_api.reply_message(
                     event.reply_token,
-                    TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet",
+                    TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet\n"
+                                    f"/canceltweet to cancel",
                                     quick_reply=QuickReply(items=[
                                         QuickReplyButton(action=MessageAction("SEND", "/send")),
                                         QuickReplyButton(
@@ -255,7 +253,8 @@ def handle_message(event):
                                     account.next_tweet_msg = msg
                                     line_bot_api.reply_message(
                                         event.reply_token,
-                                        TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet",
+                                        TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet\n"
+                                                        f"/canceltweet to cancel",
                                                         quick_reply=QuickReply(items=[
                                                             QuickReplyButton(action=MessageAction("SEND", "/send")),
                                                             QuickReplyButton(
