@@ -10,7 +10,7 @@ import requests
 import os
 import random
 import io
-from tables import db, TweetAccount
+from tables import db, TweetAccount, LineGroup
 from twitter_bot import tweet
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
@@ -196,11 +196,27 @@ def handle_message(event):
                                  "/youtube (search query)\n"
                                  "/cat")
         )
-    elif user_message == "/groupid" and event.source.type == "group":
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage("groupid: " + event.source.group_id)
-        )
+    elif user_message == "/tumbal" and event.source.type == "group":
+        group = LineGroup.query.get(event.source.group_id)
+        if not group:
+            group = LineGroup(group_id=event.source.group_id)
+        if group.phase == "tumbal":
+            user_name = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
+            if user_name not in group.data.split("\n"):
+                group.data += \
+                    "\n" + user_name
+        else:
+            group.phase = "tumbal"
+            group.data = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
+    elif user_message == "/tumbalkelar" and event.source.type == "group":
+        group = LineGroup.query.get(event.source.group_id)
+        if group:
+            if group.phase == "tumbal" and group.data:
+                members = group.data.split("\n")
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage("Yang jadi tumbal: " + random.choice(members))
+                )
     else:
         if account:
             phase = account.tweet_phase

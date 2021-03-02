@@ -159,3 +159,9 @@ class TweetAccount(db.Model):
     last_tweet_req = db.Column(db.String(100))
     next_tweet_msg = db.Column(db.Text)
     tweet_phase = db.Column(db.String(50))
+
+
+class LineGroup(db.Model):
+    id = db.Column(db.String(50), primary_key=True)
+    phase = db.Column(db.String(50))
+    data = db.Column(db.Text)
