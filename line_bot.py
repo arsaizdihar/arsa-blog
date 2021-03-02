@@ -200,14 +200,19 @@ def handle_message(event):
         group = LineGroup.query.get(event.source.group_id)
         if not group:
             group = LineGroup(group_id=event.source.group_id)
+            db.session.add(group)
         if group.phase == "tumbal":
             user_name = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
             if user_name not in group.data.split("\n"):
-                group.data += \
-                    "\n" + user_name
+                group.data += "\n" + user_name
         else:
             group.phase = "tumbal"
             group.data = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage("Daftar Tumbal" + "\n" + group.data)
+        )
+        db.session.commit()
     elif user_message == "/tumbalkelar" and event.source.type == "group":
         group = LineGroup.query.get(event.source.group_id)
         if group:
