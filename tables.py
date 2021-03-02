@@ -154,6 +154,7 @@ class File(db.Model):
 class TweetAccount(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     account_id = db.Column(db.String(50), nullable=False)
+    name = db.Column(db.String(20))
     last_tweet = db.Column(db.String(100))
     img_soon = db.Column(db.Boolean, default=False)
     last_tweet_req = db.Column(db.String(100))

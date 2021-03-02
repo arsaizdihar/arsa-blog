@@ -93,6 +93,11 @@ def handle_image_message(event):
 def handle_message(event):
     user_message = event.message.text.lower()
     account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    if not account:
+        account = TweetAccount(account_id=event.source.user_id)
+        account.name = line_bot_api.get_profile(account.account_id).display_name
+        db.session.add(account)
+        db.session.commit()
     if user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
