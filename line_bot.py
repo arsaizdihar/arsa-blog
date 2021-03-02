@@ -2,7 +2,7 @@ from flask import Blueprint, request, abort, url_for
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
-    ButtonsTemplate, URIAction, ImageMessage
+    ButtonsTemplate, URIAction, ImageMessage, QuickReply, QuickReplyButton, MessageAction
 from datetime import datetime, timedelta
 from googleapiclient.discovery import build
 from html import unescape
@@ -77,26 +77,15 @@ def handle_image_message(event):
     if account:
         if account.img_soon and account.tweet_phase == "img":
             if check_timeout(account.last_tweet_req, 300):
-                try:
-                    pic = line_bot_api.get_message_content(event.message.id)
-                    file = io.BytesIO(pic.content)
-                    url = tweet(account.next_tweet_msg, file)
-                    file.close()
-                    if url:
-                        message = f"Tweet Posted.\nurl: {url}"
-                    else:
-                        message = f"Tweet failed. Please try again."
-                    line_bot_api.reply_message(
-                        event.reply_token,
-                        TextSendMessage(text=message)
-                    )
-                except Exception as e:
-                    print(e)
-            account.tweet_phase = ""
-            account.last_tweet = datetime.utcnow().strftime(TIME_FORMAT)
-            account.last_tweet_req = ""
-            account.img_soon = False
-            account.next_tweet_msg = ""
+                account.tweet_phase = "confirm " + event.message.id
+                line_bot_api.reply_message(
+                    event.reply_token,
+                    TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}",
+                                    quick_reply=QuickReply(items=[
+                                        QuickReplyButton(action=MessageAction("SEND", "/send"))
+                                    ]))
+                )
+            account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
             db.session.commit()
 
 
@@ -242,19 +231,36 @@ def handle_message(event):
                                         TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.")
                                     )
                                 else:
-                                    account.tweet_phase = ""
-                                    account.next_tweet_msg = ""
-                                    account.last_tweet = now
-                                    account.last_tweet_req = ""
-                                    url = tweet(msg)
-                                    if url:
-                                        message = f"Tweet Posted.\nurl: {url}"
-                                    else:
-                                        message = f"Tweet failed. Please try again."
+                                    account.tweet_phase = "confirm"
+                                    account.next_tweet_msg = msg
                                     line_bot_api.reply_message(
                                         event.reply_token,
-                                        TextSendMessage(message)
+                                        TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}",
+                                                        quick_reply=QuickReply(items=[
+                                                            QuickReplyButton(action=MessageAction("SEND", "/send"))
+                                                        ]))
                                     )
+                        if phase.startswith("confirm") and user_message == "/send":
+                            account.tweet_phase = ""
+                            account.last_tweet = now
+                            account.last_tweet_req = ""
+                            if account.img_soon:
+                                msg_media_id = phase.split(" ")[-1]
+                                pic = line_bot_api.get_message_content(msg_media_id)
+                                file = io.BytesIO(pic.content)
+                                url = tweet(account.next_tweet_msg, file)
+                                file.close()
                             else:
-                                pass
+                                url = tweet(account.next_tweet_msg)
+                            account.next_tweet_msg = ""
+                            if url:
+                                message = f"Tweet Posted.\nurl: {url}"
+                            else:
+                                message = f"Tweet failed. Please try again."
+                            line_bot_api.reply_message(
+                                event.reply_token,
+                                TextSendMessage(message)
+                            )
+                    else:
+                        pass
                 db.session.commit()
