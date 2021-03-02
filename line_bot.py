@@ -247,7 +247,7 @@ def handle_message(event):
         results = search_google(query)
         message = ""
         for result in results:
-            message += f"{result['title']}\n{result['description']}\n{result['title']}\n\n"
+            message += f"{result['title']}\n{result['description']}\n{result['link']}\n\n"
         message = message[:-2]
         line_bot_api.reply_message(
             event.reply_token,
