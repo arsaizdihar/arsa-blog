@@ -20,9 +20,9 @@ ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
 CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
 line_bot_api = LineBotApi(ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
-KEYWORDS = ['/alipaddam', '/eligible', '/eligibleipa', '/eligibleips', '/eligiblemipa']
 YOUTUBE_API_KEY = os.environ.get('YOUTUBE_API_KEY')
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S.%f"
+
 
 def get_delta_time(year, month, day=0, hour=0):
     now = datetime.utcnow()
@@ -80,7 +80,7 @@ def handle_image_message(event):
                 account.tweet_phase = "confirm " + event.message.id
                 line_bot_api.reply_message(
                     event.reply_token,
-                    TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}",
+                    TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet",
                                     quick_reply=QuickReply(items=[
                                         QuickReplyButton(action=MessageAction("SEND", "/send"))
                                     ]))
@@ -187,7 +187,11 @@ def handle_message(event):
                                  "SNMPTN\n"
                                  "SBMPTN\n"
                                  "/tweet28fess\n"
-                                 "/tweet28fessimg")
+                                 "/tweet28fessimg\n\n"
+                                 "For Fun Keywords:\n"
+                                 "/meme\n"
+                                 "/youtube (search query)\n"
+                                 "/cat")
         )
     else:
         if account:
@@ -211,14 +215,20 @@ def handle_message(event):
                             account.next_tweet_msg += event.message.text + "\nto: "
                             line_bot_api.reply_message(
                                 event.reply_token,
-                                TextSendMessage("to: \n/canceltweet to cancel")
+                                TextSendMessage("to: \n/canceltweet to cancel",
+                                                quick_reply=QuickReply(items=[
+                                                    QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
+                                                ]))
                             )
                         if phase == "to":
                             account.tweet_phase = "text"
                             account.next_tweet_msg += event.message.text + "\n"
                             line_bot_api.reply_message(
                                 event.reply_token,
-                                TextSendMessage("message: \n/canceltweet to cancel")
+                                TextSendMessage("message: \n/canceltweet to cancel",
+                                                quick_reply=QuickReply(items=[
+                                                    QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
+                                                ]))
                             )
                         if phase == "text":
                             msg = account.next_tweet_msg + event.message.text
@@ -228,14 +238,19 @@ def handle_message(event):
                                     account.tweet_phase = "img"
                                     line_bot_api.reply_message(
                                         event.reply_token,
-                                        TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.")
+                                        TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.\n"
+                                                        "/canceltweet to cancel",
+                                                        quick_reply=QuickReply(items=[
+                                                            QuickReplyButton(
+                                                                action=MessageAction("CANCEL", "/canceltweet"))
+                                                        ]))
                                     )
                                 else:
                                     account.tweet_phase = "confirm"
                                     account.next_tweet_msg = msg
                                     line_bot_api.reply_message(
                                         event.reply_token,
-                                        TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}",
+                                        TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet",
                                                         quick_reply=QuickReply(items=[
                                                             QuickReplyButton(action=MessageAction("SEND", "/send"))
                                                         ]))
@@ -250,6 +265,7 @@ def handle_message(event):
                                 file = io.BytesIO(pic.content)
                                 url = tweet(account.next_tweet_msg, file)
                                 file.close()
+                                account.img_soon = False
                             else:
                                 url = tweet(account.next_tweet_msg)
                             account.next_tweet_msg = ""
