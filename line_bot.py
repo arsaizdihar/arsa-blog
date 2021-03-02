@@ -199,12 +199,8 @@ def handle_message(event):
     elif user_message == "/tumbal" and event.source.type == "group":
         group_id = event.source.group_id
         member_ids = line_bot_api.get_group_member_ids(group_id).member_ids
-        member_names = [line_bot_api.get_group_member_profile(group_id, member_id).display_name
-                        for member_id in member_ids]
-        line_bot_api.reply_message(
-            event.reply_token,
-            TextSendMessage(random.choice(member_names))
-        )
+        line_bot_api.push_message(random.choice(member_ids),
+                                  TextSendMessage("Selamat anda tumbal"))
     else:
         if account:
             phase = account.tweet_phase
