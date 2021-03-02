@@ -222,6 +222,9 @@ def handle_message(event):
                     event.reply_token,
                     TextSendMessage("Yang jadi tumbal: " + random.choice(members))
                 )
+                group.data = ""
+                group.phase = ""
+                db.session.commit()
     else:
         if account:
             phase = account.tweet_phase
