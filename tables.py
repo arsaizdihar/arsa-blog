@@ -165,3 +165,4 @@ class LineGroup(db.Model):
     id = db.Column(db.String(50), primary_key=True)
     phase = db.Column(db.String(50))
     data = db.Column(db.Text)
+    member_ids = db.Column(db.Text)

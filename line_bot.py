@@ -205,9 +205,11 @@ def handle_message(event):
             user_name = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
             if user_name not in group.data.split("\n"):
                 group.data += "\n" + user_name
+                group.member_ids += "\n" + event.source.user_id
         else:
             group.phase = "tumbal"
             group.data = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
+            group.member_ids = event.source.user_id
         line_bot_api.reply_message(
             event.reply_token,
             TextSendMessage("Daftar Tumbal" + "\n" + group.data)
@@ -217,10 +219,14 @@ def handle_message(event):
         group = LineGroup.query.get(event.source.group_id)
         if group:
             if group.phase == "tumbal" and group.data:
-                members = group.data.split("\n")
+                member_ids = group.member_ids.split("\n")
+                member = line_bot_api.get_group_member_profile(event.source.group_id, random.choice(member_ids))
                 line_bot_api.reply_message(
                     event.reply_token,
-                    TextSendMessage("Yang jadi tumbal: " + random.choice(members))
+                    messages=[
+                        TextSendMessage("Yang jadi tumbal: " + member.display_name),
+                        ImageSendMessage(member.picture_url, member.picture_url)
+                    ]
                 )
                 group.data = ""
                 group.phase = ""
