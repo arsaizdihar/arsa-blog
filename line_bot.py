@@ -196,11 +196,11 @@ def handle_message(event):
                                  "/youtube (search query)\n"
                                  "/cat")
         )
-    elif user_message == "/tumbal" and event.source.type == "group":
-        group_id = event.source.group_id
-        member_ids = line_bot_api.get_group_member_ids(group_id).member_ids
-        line_bot_api.push_message(random.choice(member_ids),
-                                  TextSendMessage("Selamat anda tumbal"))
+    elif user_message == "/groupid" and event.source.type == "group":
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage("groupid: " + event.source.group_id)
+        )
     else:
         if account:
             phase = account.tweet_phase
