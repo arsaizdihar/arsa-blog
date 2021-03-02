@@ -82,7 +82,9 @@ def handle_image_message(event):
                     event.reply_token,
                     TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet",
                                     quick_reply=QuickReply(items=[
-                                        QuickReplyButton(action=MessageAction("SEND", "/send"))
+                                        QuickReplyButton(action=MessageAction("SEND", "/send")),
+                                        QuickReplyButton(
+                                            action=MessageAction("CANCEL", "/canceltweet"))
                                     ]))
                 )
             account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
@@ -255,7 +257,9 @@ def handle_message(event):
                                         event.reply_token,
                                         TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet",
                                                         quick_reply=QuickReply(items=[
-                                                            QuickReplyButton(action=MessageAction("SEND", "/send"))
+                                                            QuickReplyButton(action=MessageAction("SEND", "/send")),
+                                                            QuickReplyButton(
+                                                                action=MessageAction("CANCEL", "/canceltweet"))
                                                         ]))
                                     )
                         if phase.startswith("confirm") and user_message == "/send":
