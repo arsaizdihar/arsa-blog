@@ -199,7 +199,7 @@ def handle_message(event):
     elif user_message == "/tumbal" and event.source.type == "group":
         group = LineGroup.query.get(event.source.group_id)
         if not group:
-            group = LineGroup(group_id=event.source.group_id)
+            group = LineGroup(id=event.source.group_id)
             db.session.add(group)
         if group.phase == "tumbal":
             user_name = line_bot_api.get_group_member_profile(event.source.group_id, event.source.user_id).display_name
