@@ -1,4 +1,4 @@
-from flask import Blueprint, request, abort, url_for
+from flask import Blueprint, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
@@ -12,6 +12,7 @@ import random
 import io
 from tables import db, TweetAccount, LineGroup
 from twitter_bot import tweet
+from google_search import search_google
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
 CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
@@ -241,6 +242,17 @@ def handle_message(event):
                 group.phase = ""
                 group.member_ids = ""
                 db.session.commit()
+    elif user_message.startswith("/google ") and len(user_message) > len("/google "):
+        query = event.message.text[8:]
+        results = search_google(query)
+        message = ""
+        for result in results:
+            message += f"{result['title']}\n{result['description']}\n{result['title']}\n\n"
+        message = message[:-2]
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(message)
+        )
     else:
         if account:
             phase = account.tweet_phase
