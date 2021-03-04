@@ -1,18 +1,21 @@
+import io
+import os
+import random
+from datetime import datetime, timedelta
+from html import unescape
+
+import requests
 from flask import Blueprint, request, abort
+from googleapiclient.discovery import build
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSendMessage, TemplateSendMessage, \
     ButtonsTemplate, URIAction, ImageMessage, QuickReply, QuickReplyButton, MessageAction
-from datetime import datetime, timedelta
-from googleapiclient.discovery import build
-from html import unescape
-import requests
-import os
-import random
-import io
+
+from google_search import search_google
 from tables import db, TweetAccount, LineGroup
 from twitter_bot import tweet
-from google_search import search_google
+
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
 CHANNEL_SECRET = os.environ.get("LINE_CHANNEL_SECRET")
@@ -37,7 +40,7 @@ def get_delta_time(year, month, day=0, hour=0):
 def check_timeout(then, sec):
     then_datetime = datetime.strptime(then, TIME_FORMAT)
     now = datetime.utcnow()
-    return (now-then_datetime).total_seconds() <= sec
+    return (now - then_datetime).total_seconds() <= sec
 
 
 def get_youtube_url(query):
@@ -141,8 +144,8 @@ def handle_message(event):
         )
     elif user_message.startswith("/number"):
         if user_message == "/number":
-            message = "Keywords: \n"\
-                      "- /number (number)\n"\
+            message = "Keywords: \n" \
+                      "- /number (number)\n" \
                       "- /number/random"
         else:
             res_type = random.choice(('math', 'trivia'))
@@ -192,15 +195,34 @@ def handle_message(event):
     elif user_message == "/command":
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text="Keywords: \n"
-                                 "SNMPTN\n"
-                                 "SBMPTN\n"
-                                 "/tweet28fess\n"
-                                 "/tweet28fessimg\n\n"
-                                 "For Fun Keywords:\n"
-                                 "/meme\n"
-                                 "/youtube (search query)\n"
-                                 "/cat")
+            [TextSendMessage(text="Keywords: \n"
+                                  "SNMPTN\n"
+                                  "SBMPTN\n"
+                                  "/tweet28fess\n"
+                                  "/tweet28fessimg\n\n"
+                                  "For Fun Keywords:\n"
+                                  "/meme\n"
+                                  "/youtube (search query)\n"
+                                  "/cat"),
+             TemplateSendMessage(
+                 alt_text="",
+                 template=ButtonsTemplate(
+                     thumbnail_image_url='https://s3-eu-west-1.amazonaws.com/dmi-studentportal-uploads/v3blog/twitter_logo_blue.png',
+                     title='Tweet at 28FESS twitter',
+                     text="",
+                     actions=[
+                         MessageAction(
+                             "Tweet",
+                             "/tweet28FESS"
+                         ),
+                         MessageAction(
+                             "Tweet with Image",
+                             "/tweet28FESSimg"
+                         )
+                     ]
+                 )
+             )
+             ]
         )
     elif user_message == "/tumbal" and event.source.type == "group":
         group = LineGroup.query.get(event.source.group_id)
