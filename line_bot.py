@@ -102,7 +102,19 @@ def handle_message(event):
         account.name = line_bot_api.get_profile(account.account_id).display_name
         db.session.add(account)
         db.session.commit()
-    if user_message == "snmptn":
+    if "!dupan" in user_message:
+        if len(user_message) <= 280:
+            account.tweet_phase = "confirm"
+            account.next_tweet_msg = user_message
+            account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
+            db.session.commit()
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage("CONFIRMATION\n\n"
+                                "/send to tweet"
+                                "/canceltweet to cancel")
+            )
+    elif user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
         line_bot_api.reply_message(
             event.reply_token,
@@ -132,7 +144,11 @@ def handle_message(event):
         title, url = get_youtube_url(query)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"{title}\n{url}")
+            TextSendMessage(text=f"{title}\n{url}", quick_reply=QuickReply(items=[
+                                                            QuickReplyButton(action=MessageAction("SEND", "/send")),
+                                                            QuickReplyButton(
+                                                                action=MessageAction("CANCEL", "/canceltweet"))
+                                                        ]))
         )
 
     elif user_message == "/meme":
@@ -174,9 +190,6 @@ def handle_message(event):
             ImageSendMessage(url, url)
         )
     elif user_message == "/tweet28fess" or user_message == "/tweet28fessimg":
-        if not account:
-            account = TweetAccount(account_id=event.source.user_id)
-            db.session.add(account)
         if user_message == "/tweet28fessimg":
             account.img_soon = True
         else:
