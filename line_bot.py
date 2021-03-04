@@ -111,7 +111,7 @@ def handle_message(event):
             line_bot_api.reply_message(
                 event.reply_token,
                 TextSendMessage("CONFIRMATION\n\n"
-                                "/send to tweet"
+                                "/send to tweet\n"
                                 "/canceltweet to cancel")
             )
     elif user_message == "snmptn":
