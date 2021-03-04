@@ -112,7 +112,11 @@ def handle_message(event):
                 event.reply_token,
                 TextSendMessage("CONFIRMATION\n\n"
                                 "/send to tweet\n"
-                                "/canceltweet to cancel")
+                                "/canceltweet to cancel",
+                                quick_reply=QuickReply(items=[
+                                    QuickReplyButton(action=MessageAction("SEND", "/send")),
+                                    QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
+                                ]))
             )
     elif user_message == "snmptn":
         day, hour, minute, second = get_delta_time(2021, 3, 22, 15)
@@ -144,11 +148,7 @@ def handle_message(event):
         title, url = get_youtube_url(query)
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage(text=f"{title}\n{url}", quick_reply=QuickReply(items=[
-                                                            QuickReplyButton(action=MessageAction("SEND", "/send")),
-                                                            QuickReplyButton(
-                                                                action=MessageAction("CANCEL", "/canceltweet"))
-                                                        ]))
+            TextSendMessage(text=f"{title}\n{url}")
         )
 
     elif user_message == "/meme":
