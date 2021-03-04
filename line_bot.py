@@ -81,7 +81,7 @@ def handle_image_message(event):
                 account.tweet_phase = "confirm " + event.message.id
                 line_bot_api.reply_message(
                     event.reply_token,
-                    TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet\n"
+                    TextSendMessage(f"CONFIRMATION‼\n\n{account.next_tweet_msg}\n\n/send to tweet\n"
                                     f"/canceltweet to cancel",
                                     quick_reply=QuickReply(items=[
                                         QuickReplyButton(action=MessageAction("SEND", "/send")),
@@ -105,12 +105,12 @@ def handle_message(event):
     if "!dupan" in user_message:
         if len(user_message) <= 280:
             account.tweet_phase = "confirm"
-            account.next_tweet_msg = user_message
+            account.next_tweet_msg = event.message.text
             account.last_tweet_req = datetime.utcnow().strftime(TIME_FORMAT)
             db.session.commit()
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage("CONFIRMATION\n\n"
+                TextSendMessage("CONFIRMATION‼\n\n"
                                 "/send to tweet\n"
                                 "/canceltweet to cancel",
                                 quick_reply=QuickReply(items=[
@@ -345,7 +345,7 @@ def handle_message(event):
                                     account.next_tweet_msg = msg
                                     line_bot_api.reply_message(
                                         event.reply_token,
-                                        TextSendMessage(f"Confirmation:\n{account.next_tweet_msg}\n/send to tweet\n"
+                                        TextSendMessage(f"CONFIRMATION‼\n\n{account.next_tweet_msg}\n\n/send to tweet\n"
                                                         f"/canceltweet to cancel",
                                                         quick_reply=QuickReply(items=[
                                                             QuickReplyButton(action=MessageAction("SEND", "/send")),
