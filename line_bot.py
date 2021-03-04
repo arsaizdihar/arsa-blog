@@ -205,11 +205,11 @@ def handle_message(event):
                                   "/youtube (search query)\n"
                                   "/cat"),
              TemplateSendMessage(
-                 alt_text="",
+                 alt_text="https://twitter.com/28FESS",
                  template=ButtonsTemplate(
                      thumbnail_image_url='https://s3-eu-west-1.amazonaws.com/dmi-studentportal-uploads/v3blog/twitter_logo_blue.png',
                      title='Tweet at 28FESS twitter',
-                     text="",
+                     text="Click Here",
                      actions=[
                          MessageAction(
                              "Tweet",
