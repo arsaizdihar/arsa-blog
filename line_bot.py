@@ -258,6 +258,12 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(message)
         )
+    elif user_message.startswith("/pilih ") and ", " in user_message:
+        pilihan = event.message.text[7:].split(", ")
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(random.choice(pilihan))
+        )
     else:
         if account:
             phase = account.tweet_phase
