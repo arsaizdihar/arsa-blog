@@ -13,7 +13,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSend
     ButtonsTemplate, URIAction, ImageMessage, QuickReply, QuickReplyButton, MessageAction
 
 from google_search import search_google
-from tables import db, TweetAccount, LineGroup
+from tables import db, LineAccount, LineGroup
 from twitter_bot import tweet
 
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
@@ -74,7 +74,7 @@ def callback():
 
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_image_message(event):
-    account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    account = LineAccount.query.filter_by(account_id=event.source.user_id).first()
     if account:
         if account.img_soon and account.tweet_phase == "img":
             if check_timeout(account.last_tweet_req, 300):
@@ -97,9 +97,9 @@ def handle_image_message(event):
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text.lower()
-    account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    account = LineAccount.query.filter_by(account_id=event.source.user_id).first()
     if not account:
-        account = TweetAccount(account_id=event.source.user_id)
+        account = LineAccount(account_id=event.source.user_id)
         account.name = line_bot_api.get_profile(account.account_id).display_name
         db.session.add(account)
         db.session.commit()
