@@ -74,15 +74,16 @@ def callback():
 
 @handler.add(MessageEvent, message=ImageMessage)
 def handle_image_message(event):
-    account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    account = LineAccount.query.filter_by(account_id=event.source.user_id).first()
     if account:
         if account.img_soon and account.tweet_phase == "img":
             if check_timeout(account.last_tweet_req, 300):
                 account.tweet_phase = "confirm " + event.message.id
                 line_bot_api.reply_message(
                     event.reply_token,
-                    TextSendMessage(f"‼CONFIRMATION‼\n\n{account.next_tweet_msg}\n\n/send to tweet\n"
-                                    f"/canceltweet to cancel",
+                    TextSendMessage(f"❗❗CONFIRMATION❗❗\n\n{account.next_tweet_msg}\n\n"
+                                    f"/send to tweet {get_emoji_str('0x1000A5')}\n"
+                                    f"/canceltweet to cancel {get_emoji_str('0x1000A6')}",
                                     quick_reply=QuickReply(items=[
                                         QuickReplyButton(action=MessageAction("SEND", "/send")),
                                         QuickReplyButton(
@@ -96,13 +97,13 @@ def handle_image_message(event):
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_message = event.message.text.lower()
-    account = TweetAccount.query.filter_by(account_id=event.source.user_id).first()
+    account = LineAccount.query.filter_by(account_id=event.source.user_id).first()
     if not account:
-        account = TweetAccount(account_id=event.source.user_id)
+        account = LineAccount(account_id=event.source.user_id)
         account.name = line_bot_api.get_profile(account.account_id).display_name
         db.session.add(account)
         db.session.commit()
-    if "!dupan" in user_message:
+    if "dupan!" in user_message:
         if len(user_message) <= 280:
             account.tweet_phase = "confirm"
             account.next_tweet_msg = event.message.text
@@ -110,9 +111,9 @@ def handle_message(event):
             db.session.commit()
             line_bot_api.reply_message(
                 event.reply_token,
-                TextSendMessage("‼CONFIRMATION‼\n\n"
-                                "/send to tweet\n"
-                                "/canceltweet to cancel",
+                TextSendMessage("❗❗CONFIRMATION❗❗\n\n"
+                                f"/send to tweet {get_emoji_str('0x1000A5')}\n"
+                                f"/canceltweet to cancel {get_emoji_str('0x1000A6')}",
                                 quick_reply=QuickReply(items=[
                                     QuickReplyButton(action=MessageAction("SEND", "/send")),
                                     QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
@@ -181,6 +182,7 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=message)
         )
+
     elif user_message == "/cat":
         response = requests.get("https://api.thecatapi.com/v1/images/search")
         data = response.json()
@@ -200,42 +202,10 @@ def handle_message(event):
         db.session.commit()
         line_bot_api.reply_message(
             event.reply_token,
-            TextSendMessage("from: \n/canceltweet to cancel",
+            TextSendMessage(f"from: \n\n/canceltweet to cancel {get_emoji_str('0x1000A6')}",
                             quick_reply=QuickReply(items=[
                                 QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
                             ]))
-        )
-    elif user_message == "/command":
-        line_bot_api.reply_message(
-            event.reply_token,
-            [TextSendMessage(text="Keywords: \n"
-                                  "SNMPTN\n"
-                                  "SBMPTN\n"
-                                  "/tweet28fess\n"
-                                  "/tweet28fessimg\n\n"
-                                  "For Fun Keywords:\n"
-                                  "/meme\n"
-                                  "/youtube (search query)\n"
-                                  "/cat"),
-             TemplateSendMessage(
-                 alt_text="https://twitter.com/28FESS",
-                 template=ButtonsTemplate(
-                     thumbnail_image_url='https://s3-eu-west-1.amazonaws.com/dmi-studentportal-uploads/v3blog/twitter_logo_blue.png',
-                     title='Tweet at 28FESS twitter',
-                     text="Click Here",
-                     actions=[
-                         MessageAction(
-                             "Tweet",
-                             "/tweet28FESS"
-                         ),
-                         MessageAction(
-                             "Tweet with Image",
-                             "/tweet28FESSimg"
-                         )
-                     ]
-                 )
-             )
-             ]
         )
     elif user_message == "/tumbal" and event.source.type == "group":
         group = LineGroup.query.get(event.source.group_id)
@@ -310,7 +280,7 @@ def handle_message(event):
                             account.next_tweet_msg += event.message.text + "\nto: "
                             line_bot_api.reply_message(
                                 event.reply_token,
-                                TextSendMessage("to: \n/canceltweet to cancel",
+                                TextSendMessage(f"to: \n\n/canceltweet to cancel {get_emoji_str('0x1000A6')}",
                                                 quick_reply=QuickReply(items=[
                                                     QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
                                                 ]))
@@ -320,7 +290,7 @@ def handle_message(event):
                             account.next_tweet_msg += event.message.text + "\n"
                             line_bot_api.reply_message(
                                 event.reply_token,
-                                TextSendMessage("message: \n/canceltweet to cancel",
+                                TextSendMessage(f"message: \n\n/canceltweet to cancel {get_emoji_str('0x1000A6')}",
                                                 quick_reply=QuickReply(items=[
                                                     QuickReplyButton(action=MessageAction("CANCEL", "/canceltweet"))
                                                 ]))
@@ -333,8 +303,8 @@ def handle_message(event):
                                     account.tweet_phase = "img"
                                     line_bot_api.reply_message(
                                         event.reply_token,
-                                        TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.\n"
-                                                        "/canceltweet to cancel",
+                                        TextSendMessage("Kirim foto yang ingin di post dalam 5 menit.\n\n"
+                                                        f"/canceltweet to cancel {get_emoji_str('0x1000A6')}",
                                                         quick_reply=QuickReply(items=[
                                                             QuickReplyButton(
                                                                 action=MessageAction("CANCEL", "/canceltweet"))
@@ -345,8 +315,9 @@ def handle_message(event):
                                     account.next_tweet_msg = msg
                                     line_bot_api.reply_message(
                                         event.reply_token,
-                                        TextSendMessage(f"‼CONFIRMATION‼\n\n{account.next_tweet_msg}\n\n/send to tweet\n"
-                                                        f"/canceltweet to cancel",
+                                        TextSendMessage(f"❗❗CONFIRMATION❗❗\n\n{account.next_tweet_msg}\n\n"
+                                                        f"/send to tweet {get_emoji_str('0x1000A5')}\n"
+                                                        f"/canceltweet to cancel {get_emoji_str('0x1000A6')}",
                                                         quick_reply=QuickReply(items=[
                                                             QuickReplyButton(action=MessageAction("SEND", "/send")),
                                                             QuickReplyButton(
