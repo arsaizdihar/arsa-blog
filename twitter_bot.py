@@ -21,6 +21,10 @@ def tweet(msg, file=None):
         else:
             post = api.update_status(msg)
         return f"https://twitter.com/{post.user.screen_name}/status/{post.id}"
-    except tweepy.error.TweepError:
+    except tweepy.error.TweepError as e:
+        print(e)
         return False
 
+
+def test_tweet():
+    return api.verify_credentials()

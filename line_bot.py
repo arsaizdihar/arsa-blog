@@ -14,7 +14,7 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage, ImageSend
 
 from google_search import search_google
 from tables import db, LineAccount, LineGroup
-from twitter_bot import tweet
+from twitter_bot import tweet, test_tweet
 
 line_app = Blueprint('line_aoo', __name__, "static", "templates")
 ACCESS_TOKEN = os.environ.get("LINE_ACCESS_TOKEN")
@@ -144,6 +144,18 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(text=f"SBMPTN\n"
                                  f"{get_emoji_str('0x100071')}{day} hari {hour} jam {minute} menit {second} detik lagi {get_emoji_str('0x100032')}"))
+    elif user_message == "/testtweet":
+        test = test_tweet()
+        if test:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage("success")
+                )
+        else:
+            line_bot_api.reply_message(
+                event.reply_token,
+                TextSendMessage("fail")
+                )
     elif user_message.startswith('/youtube ') and len(user_message) > 9:
         query = user_message[9:]
         title, url = get_youtube_url(query)
@@ -264,6 +276,13 @@ def handle_message(event):
             event.reply_token,
             TextSendMessage(random.choice(pilihan))
         )
+    elif user_message.startswith("/kerangajaib "):
+        random.seed(user_message)
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(random.choice(["iya", "tidak"]))
+        )
+        random.seed()
     else:
         if account:
             phase = account.tweet_phase
