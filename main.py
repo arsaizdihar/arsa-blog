@@ -452,7 +452,7 @@ def portfolio():
         else:
             all_data[data.name] = data.data
 
-    return render_template("index.html", data=all_data)
+    return render_template("portfolio.html", data=all_data)
 
 
 if __name__ == "__main__":
