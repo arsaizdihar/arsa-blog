@@ -149,3 +149,10 @@ class File(db.Model):
 
     def __str__(self):
         return self.filename
+
+
+class PortfolioData(db.Model):
+    __tablename__ = "portfolio_data"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False, unique=True)
+    data = db.Column(db.Text)

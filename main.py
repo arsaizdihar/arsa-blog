@@ -22,7 +22,7 @@ from flask_script import Manager
 
 # locals
 from forms import RegisterForm, LoginForm, CommentForm, ContactForm, UploadFileForm
-from tables import db, User, BlogPost, Comment, Contact, Image, File
+from tables import db, User, BlogPost, Comment, Contact, Image, File, PortfolioData
 from admin import admin_app, check_admin, get_jkt_timezone, upload_img, generate_filename
 from chat import chat_app, socketio, send_email
 
@@ -439,6 +439,20 @@ def get_files():
         return render_template("show_files.html", logged_in=True, files=files)
 
     return abort(401)
+
+
+@app.route("/portfolio")
+def portfolio():
+    data_with_rows_names = ['facts', 'skills', 'resume_education']
+    all_data = {}
+    for data in PortfolioData.query.all():
+        if data.name in data_with_rows_names:
+            all_data[data.name] = [[cell for cell in row.split("|")] for row in
+                                   data.data.replace('\r', '').split("\n")]
+        else:
+            all_data[data.name] = data.data
+
+    return render_template("index.html", data=all_data)
 
 
 if __name__ == "__main__":
