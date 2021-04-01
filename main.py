@@ -147,6 +147,7 @@ admin.add_views(
     UserModelView(Contact, db.session),
     ImageView(Image, db.session),
     FileView(File, db.session),
+    UserModelView(PortfolioData, db.session)
 )
 
 # add function to jinja
@@ -443,7 +444,7 @@ def get_files():
 
 @app.route("/portfolio")
 def portfolio():
-    data_with_rows_names = ['facts', 'skills', 'resume_education']
+    data_with_rows_names = ['facts', 'skills', 'resume_education', 'resume_experience']
     all_data = {}
     for data in PortfolioData.query.all():
         if data.name in data_with_rows_names:
