@@ -444,6 +444,7 @@ def get_files():
 
 @app.route("/portfolio")
 def portfolio():
+
     data_with_rows_names = ['facts', 'skills', 'resume_education', 'resume_experience']
     all_data = {}
     for data in PortfolioData.query.all():
@@ -453,6 +454,17 @@ def portfolio():
         else:
             all_data[data.name] = data.data
 
+    image_groups = []
+    all_data['images'] = []
+    for image in Image.query.filter(Image.filename.like('port_%')).all():
+        groups = image.filename.split("_")
+        image_dict = {'url': url_for('get_img', filename=image.filename),
+                      'group': groups[1],
+                      'name': groups[2].split('.')[0]}
+        if groups[1] not in image_groups:
+            image_groups.append(groups[1])
+        all_data['images'].append(image_dict)
+    all_data['image_groups'] = image_groups
     return render_template("portfolio.html", data=all_data)
 
 
