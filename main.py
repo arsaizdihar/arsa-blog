@@ -47,6 +47,7 @@ socketio.init_app(app)
 
 # CONNECT TO DB
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', "sqlite:///blog.db")
+app.config['SQLALCHEMY_DATABASE_URI'] = "postgres://yqqkucrlrwodsg:42462cba995f477569fffd759a8275795380a5fcc2c76c73b10c7e83a9ffbc76@ec2-52-22-135-159.compute-1.amazonaws.com:5432/dddtkamj2oji4a"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=2)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
@@ -466,6 +467,16 @@ def portfolio():
         all_data['images'].append(image_dict)
     all_data['image_groups'] = image_groups
     return render_template("portfolio.html", data=all_data)
+
+
+@app.route("/eid/<url>")
+def lebaran(url):
+    if url == "tal":
+        return render_template("lebaran.html")
+    # eid_data = EidData.query.filter_by(url=url)
+    # name = eid_data.name
+    # return render_template()
+
 
 
 if __name__ == "__main__":
